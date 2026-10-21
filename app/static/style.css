@@ -1237,6 +1237,9 @@ select.meta-input { appearance: auto; cursor: pointer; }
 
 /* Settings & How It Works modal (gear icon, top of sidebar) */
 .settings-modal {
+  /* The height the window's own chrome takes (top padding, header, panel padding): a panel's sticky
+     column is sized against the rest, so it never stands taller than the window and is cut off. */
+  --settings-chrome: 118px;
   max-width: 640px;
   max-height: 84vh;
   display: flex;
@@ -1265,7 +1268,7 @@ select.meta-input { appearance: auto; cursor: pointer; }
 .settings-tab:hover { color: var(--accent); }
 .settings-tab.active { background: var(--accent-soft); color: var(--accent); }
 .settings-hint { color:var(--text-muted); font-size:12.5px; line-height:1.5; margin:0 0 12px; }
-.settings-panel { overflow-y: auto; padding: 20px 26px 26px; }
+.settings-panel { overflow-y: auto; min-height: 0; padding: 20px 26px 26px; }
 .settings-intro { margin: 0 0 16px; color: var(--text-muted); font-size: 13.5px; line-height: 1.5; }
 .settings-form { display: flex; flex-direction: column; gap: 16px; }
 .settings-group-label {
@@ -2512,8 +2515,8 @@ button.pill-admin:focus-visible { outline: 2px solid var(--accent); outline-offs
 
 /* The appearance editor: the form, and the sign-in preview beside it on a wide screen. */
 .appearance-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 18px; align-items: start; }
-@media (max-width: 900px) { .appearance-layout { grid-template-columns: 1fr; } }
-.appearance-preview { position: sticky; top: 0; }
+.appearance-preview { position: sticky; top: 0; max-height: calc(84vh - var(--settings-chrome)); overflow-y: auto; }
+@media (max-width: 900px) { .appearance-layout { grid-template-columns: 1fr; } .appearance-preview { position: static; max-height: none; overflow: visible; } }
 .preview-stage { position: relative; height: 300px; overflow: hidden; border-radius: var(--radius);
   border: 1px solid var(--border-soft); background: var(--bg); }
 .preview-backdrop { position: absolute; inset: 0; }
@@ -2587,8 +2590,15 @@ button.pill-admin:focus-visible { outline: 2px solid var(--accent); outline-offs
 .pb-bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .pb-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 /* By the builder's own width, since it sits in a modal on one page and a wizard panel on another. */
-@container (max-width: 720px) { .pb-columns { grid-template-columns: minmax(0, 1fr); } .pb-preview { position: static; } }
-.pb-preview { position: sticky; top: 0; display: flex; flex-direction: column; min-width: 0; }
+/* Sticky beside the form, and never taller than the window: the prompt text takes what is left and
+   scrolls inside, so the save button stays in reach. */
+.pb-preview { position: sticky; top: 0; display: flex; flex-direction: column; min-width: 0;
+  /* Less the save bar, which stays at the window's foot and would otherwise cover the column's end. */
+  max-height: calc(84vh - var(--settings-chrome) - 64px); overflow-y: auto; }
+/* Only the prompt's card gives way when the column is short; the version list and the sample test keep their height. */
+.pb-preview > * { flex-shrink: 0; }
+.pb-preview > .pb-preview-card { display: flex; flex-direction: column; flex-shrink: 1; min-height: 0; }
+@container (max-width: 720px) { .pb-columns { grid-template-columns: minmax(0, 1fr); } .pb-preview { position: static; max-height: none; overflow: visible; } }
 .pb-form { min-width: 0; }
 .pb-form .setting-card, .pb-preview .setting-card {
   transition: box-shadow var(--fast) var(--ease), border-color var(--fast) var(--ease);
@@ -2626,7 +2636,7 @@ button.pill-admin:focus-visible { outline: 2px solid var(--accent); outline-offs
 .pb-sample { display: flex; flex-direction: column; gap: 3px; margin: 12px 0 8px; font-size: 13.5px; overflow-wrap: anywhere; }
 .pb-columns-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .pb-column { font-size: 11.5px; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); }
-.pb-prompt { margin: 0; max-height: 52vh; overflow: auto; padding: 12px 14px; border-radius: var(--radius-sm);
+.pb-prompt { margin: 0; flex: 1 1 auto; min-height: 140px; max-height: 52vh; overflow: auto; padding: 12px 14px; border-radius: var(--radius-sm);
   background: var(--surface-muted); border: 1px solid var(--border-soft); font: 12px/1.55 ui-monospace, Menlo, Consolas, monospace;
   white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
 .pb-prompt.is-fresh { animation: pb-fade var(--slow) var(--ease); }
