@@ -34,7 +34,9 @@ says, each snapshot with a manifest of the files it needs; `incipit restore --fr
 <new folder>` (or Settings → Backups) rebuilds a data folder from one, never over the running site.
 New versions come from a release feed baked into the build (`UPDATE_FEED`, or `INCIPIT_UPDATE_FEED`);
 the owner installs from Settings → Updates or the tray, and the installer's `/UPDATE` mode replaces
-only the program. `docs/OPERATIONS.md` is the client administrator's guide. The checkout's own
+only the program. A release is published with `scripts/release.py --notes "..."` (bump `VERSION`,
+commit and push first): it builds with the GitHub feed baked in and creates the GitHub release.
+`docs/OPERATIONS.md` is the client administrator's guide. The checkout's own
 commands below still take explicit paths.
 
 A new site is created with `incipit init --db data/incipit.db` (add `--owner NAME`, with the

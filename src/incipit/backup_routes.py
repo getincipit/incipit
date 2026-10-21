@@ -62,18 +62,19 @@ def payload(settings, running: bool) -> dict:
 
 def install(app, settings) -> None:
     state = {"running": False}
+    state_lock = threading.Lock()
 
     def run_now() -> None:
-        paths = _paths(settings)
-        state["running"] = True
         try:
+            paths = _paths(settings)
             backup.run_backup(paths["database"], paths["backups"], data_dir=settings.data_folder,
                               status_dir=paths["logs"], mirror_dir=paths["backup_mirror"],
                               export_dir=paths["exports"])
         except Exception:  # noqa: BLE001 - the status file records why; the page reads it
             pass
         finally:
-            state["running"] = False
+            with state_lock:
+                state["running"] = False
 
     @app.get("/api/backups")
     def get_backups():
@@ -124,10 +125,16 @@ def install(app, settings) -> None:
     def post_run():
         if not settings.data_folder:
             return _error(409, "this site is not run from a data folder")
-        if not state["running"]:
-            threading.Thread(target=run_now, name="incipit-backup-now", daemon=True).start()
-            state["running"] = True
-        return payload(settings, True)
+        with state_lock:
+            if not state["running"]:
+                state["running"] = True
+                try:
+                    threading.Thread(target=run_now, name="incipit-backup-now", daemon=True).start()
+                except RuntimeError:
+                    state["running"] = False
+                    raise
+            running = state["running"]
+        return payload(settings, running)
 
     @app.post("/api/backups/restore")
     async def post_restore(request: Request):

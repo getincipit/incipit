@@ -136,6 +136,31 @@ def test_ac3_back_up_now_makes_a_snapshot(site):
     assert state["snapshots"] and state["last"]["ok"]
 
 
+def test_a_fast_manual_backup_does_not_leave_the_page_running(site, monkeypatch):
+    """A backup that finishes before Thread.start returns must not leave a stale running flag."""
+    import threading
+    import time
+    from incipit import backup_routes
+
+    app, _, _ = site
+    client = signed_in(app, "olive")
+    monkeypatch.setattr(backup, "run_backup", lambda *args, **kwargs: None)
+    original_start = threading.Thread.start
+
+    def start_with_fast_worker_first(thread):
+        original_start(thread)
+        if thread.name == "incipit-backup-now":
+            time.sleep(0.1)
+
+    monkeypatch.setattr(backup_routes.threading.Thread, "start", start_with_fast_worker_first)
+    assert client.post("/api/backups/run").status_code == 200
+    for _ in range(100):
+        if not client.get("/api/backups").json()["running"]:
+            break
+        time.sleep(0.01)
+    assert client.get("/api/backups").json()["running"] is False
+
+
 # ---------- AC-4: the manifest ----------
 
 

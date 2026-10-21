@@ -341,3 +341,27 @@ def test_ac9_settings_has_an_updates_tab_mounted_through_its_signal():
     index = (ROOT / "app" / "static" / "index.html").read_text(encoding="utf-8")
     source = (ROOT / "app" / "static" / "updates.js").read_text(encoding="utf-8")
     assert 'data-settings-tab="updates"' in index and "remount(container)" in source
+
+
+# ---------- the release script and the updater agree ----------
+
+
+def test_the_feed_the_release_script_writes_is_the_one_the_updater_reads(tmp_path, monkeypatch):
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import release
+    installer = tmp_path / "Incipit-9.2.0-setup.exe"
+    installer.write_bytes(INSTALLER)
+    written = release.feed("9.2.0", "Notes.", installer, "parthaped/incipit")
+    _web(monkeypatch, written)
+    found = updates.check()
+    path = updates.download(found["release"], folder=tmp_path / "downloaded")
+    assert found["state"] == "available" and path.read_bytes() == INSTALLER
+
+
+def test_installed_copies_read_the_feed_through_githubs_latest_release_link():
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import release
+    assert release.feed_address("parthaped/incipit") == \
+        "https://github.com/parthaped/incipit/releases/latest/download/latest.json"

@@ -134,5 +134,8 @@ without the key, the logs with a planted key masked, and no database; a reviewer
 
 ## Status
 
-Complete, except for the feed's host: the address is empty in this build until we choose where
-`latest.json` and the installers are published.
+Complete. Releases are published to GitHub (`parthaped/incipit`, user decision 2026-10-21) by
+`scripts/release.py`, which bakes the feed address
+`https://github.com/parthaped/incipit/releases/latest/download/latest.json` into the build, compiles
+the installer, writes `latest.json` with its size and SHA-256, and creates the release with both as
+assets; GitHub's "latest release" link means installed copies always read the newest feed.
