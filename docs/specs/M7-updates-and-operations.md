@@ -142,3 +142,6 @@ assets; GitHub's "latest release" link means installed copies always read the ne
 v0.1.0 was published this way on 2026-10-21; read through the live feed it reported "up to date"
 against itself, and the published installer downloaded and passed the size and SHA-256 check,
 byte-identical to the local build.
+v0.1.1 followed the same day (the layout fixes for the split screen, narrow sidebar and Settings cards,
+and the move to `getincipit/incipit`); the live feed named it with the published installer's size and
+SHA-256, and the installer downloaded at that size.
