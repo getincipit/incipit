@@ -634,28 +634,33 @@
   // ---------- queue view ----------
 
   async function loadQueue() {
+    const request = (state.queueRequest = (state.queueRequest || 0) + 1);
     // Both workflows have a folder browser now; each has its own endpoint because the grouping
     // differs (scan-folder prefix vs the live site's archival folder).
-    const [documents, folders] = await Promise.all([
-      fetch(`${apiBase()}/documents${tabQuery()}`).then((r) => r.json()),
-      fetch(`/api/new/folders${tabQuery()}`)
-        // A non-2xx response still has a JSON body (FastAPI's {"detail": "..."} error shape), so
-        // it must be checked explicitly -- without this, a server error was silently treated as
-        // the folder list itself, and state.folders.length rendered as literal "undefined".
-        .then((r) => {
+    try {
+      const [documents, folders] = await Promise.all([
+        fetch(`${apiBase()}/documents${tabQuery()}`).then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
-        })
-        .catch((err) => {
-          console.error("failed to load folders:", err);
-          return [];
         }),
-    ]);
-    state.documents = documents;
-    state.folders = folders;
-    renderQueue();
-    loadPendingBatches();
-    refreshPendingCounts();
+        fetch(`/api/new/folders${tabQuery()}`)
+          // A non-2xx response still has a JSON body (FastAPI's {"detail": "..."} error shape), so
+          // it must be checked explicitly -- without this, a server error was silently treated as
+          // the folder list itself, and state.folders.length rendered as literal "undefined".
+          .then((r) => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+          }),
+      ]);
+      if (request !== state.queueRequest) return;
+      state.documents = documents;
+      state.folders = folders;
+      renderQueue();
+      loadPendingBatches();
+      refreshPendingCounts();
+    } catch (error) {
+      if (request === state.queueRequest) toast(`Could not load queue: ${error.message}`, true);
+    }
   }
 
   // What people call a document: its display id, falling back to the internal id.
@@ -796,6 +801,8 @@
   // A batch can be uploaded (and even split-proposed) without ever being confirmed -- e.g. the
   // reviewer's browser wasn't open for the upload, or they navigated away before confirming.
   async function loadPendingBatches() {
+    const request = (state.batchesRequest = (state.batchesRequest || 0) + 1);
+    const tabId = state.activeTab?.id;
     if (state.activeWorkflow !== "new") {
       pendingBatches.classList.add("hidden");
       return;
@@ -805,9 +812,19 @@
       pendingBatches.classList.add("hidden");
       return;
     }
-    const res = await fetch(`/api/new/batches${tabQuery()}`);
+    let batches;
+    try {
+      const res = await fetch(`/api/new/batches${tabQuery()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      batches = await res.json();
+    } catch (error) {
+      if (request === state.batchesRequest) pendingBatches.classList.add("hidden");
+      return;
+    }
+    if (request !== state.batchesRequest || tabId !== state.activeTab?.id) return;
+    if (!showFolderGrid() || activityRunning || !splitReviewView.classList.contains("hidden")) return;
     // Never the batch being set up right now.
-    const batches = (await res.json()).filter((b) => b.batch_id !== state.batchInFlight);
+    batches = batches.filter((b) => b.batch_id !== state.batchInFlight);
     if (!batches.length) {
       pendingBatches.classList.add("hidden");
       return;
@@ -1759,6 +1776,8 @@ const TRASH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
   // ---------- New Documents folder browser ----------
 
   function leaveFolder() {
+    state.openRequest = (state.openRequest || 0) + 1;
+    state.openingId = null;
     state.activeFolder = null;
     state.filter = "all";
     [...filterNav.children].forEach((c) => c.classList.toggle("active", c.dataset.filter === "all"));
@@ -2425,8 +2444,10 @@ const TRASH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
     state.folderSearch = "";
     if (folderSearch) folderSearch.value = "";
     [...filterNav.children].forEach((c) => c.classList.toggle("active", c.dataset.filter === "all"));
-    showQueue();
-    await loadQueue();
+    state.documents = [];
+    state.folders = [];
+    renderQueue();
+    await showQueue();
   }
 
   // ---------- "Add New Document": upload + split review ----------
@@ -2775,16 +2796,24 @@ const TRASH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
     const scanned = scanSplitGroups();
     const byFirstSeq = new Map(scanned.map((group) => [group.firstSeq, group]));
     const keptOrder = (splitState.groupOrder || []).filter((seq) => byFirstSeq.has(seq));
-    scanned.forEach((group) => {
-      if (keptOrder.includes(group.firstSeq)) return;
-      const scanIndex = scanned.findIndex((candidate) => candidate.firstSeq === group.firstSeq);
-      const previous = scanned[scanIndex - 1];
-      const after = previous ? keptOrder.indexOf(previous.firstSeq) : -1;
-      if (after >= 0) keptOrder.splice(after + 1, 0, group.firstSeq);
-      else keptOrder.push(group.firstSeq);
+    // Linked successors insert new boundaries in constant time, even in a reordered batch.
+    const next = new Map(keptOrder.map((seq, i) => [seq, keptOrder[i + 1] ?? null]));
+    let head = keptOrder[0] ?? null;
+    let tail = keptOrder.at(-1) ?? null;
+    scanned.forEach((group, i) => {
+      const seq = group.firstSeq;
+      if (next.has(seq)) return;
+      const previous = scanned[i - 1]?.firstSeq;
+      const after = next.has(previous) ? previous : tail;
+      next.set(seq, after === null ? null : next.get(after));
+      if (after === null) head = seq;
+      else next.set(after, seq);
+      if (after === tail) tail = seq;
     });
-    splitState.groupOrder = keptOrder;
-    return keptOrder.map((seq) => byFirstSeq.get(seq));
+    const ordered = [];
+    for (let seq = head; seq !== null; seq = next.get(seq)) ordered.push(seq);
+    splitState.groupOrder = ordered;
+    return ordered.map((seq) => byFirstSeq.get(seq));
   }
 
   // Approval is remembered against a group's first page rather than its position, so approving
@@ -3312,13 +3341,16 @@ const TRASH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
   // ---------- navigation between queue and detail ----------
 
   function showQueue() {
+    state.openRequest = (state.openRequest || 0) + 1;
+    state.openingId = null;
     detailView.classList.add("hidden");
     splitReviewView.classList.add("hidden");
     queueView.classList.remove("hidden");
     syncAnnouncements();
     state.currentDoc = null;
-    loadQueue();
+    const loading = loadQueue();
     updateBackButton();   // still a target if we're inside a folder
+    return loading;
   }
 
   // The button names its own destination rather than making you guess.

@@ -65,12 +65,9 @@ def install(
     def pending_for(request: Request) -> dict[str, int]:
         """Pending counts within the same folder boundary as the review queues."""
         with db.connect(settings.db_path) as conn:
-            new_ids = db.get_new_pending_document_ids(conn)
             new_visible = scoping.visible_folder_ids(conn, viewer(request), "new")
-            if new_visible is not None:
-                new_ids = [item for item in new_ids
-                           if db.folder_of_document(conn, item) in new_visible]
-        return {"new": len(new_ids)}
+            count = db.count_new_pending_documents(conn, new_visible)
+        return {"new": count}
 
     @app.get("/health")
     def health():

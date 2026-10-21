@@ -100,3 +100,40 @@ server responsibilities.
 HTTP/CLI composition may call domain modules. Domain modules may call repositories and external
 service adapters. Repositories and adapters must not import HTTP/CLI composition. Browser code
 must treat server authorization as authoritative; hiding a control is never access control.
+
+## Browser and repository file ownership
+
+Ownership here means responsibility in the code, not a guessed person or GitHub team. The
+backend tables above cover `src/incipit/*.py`; `__init__.py` owns only package identity.
+The following paths complete the map. A file stays with its feature when it changes.
+
+| Files | Primary responsibility and boundary |
+|---|---|
+| `app/static/app.js` | Queue, document and split state; navigation request generations; review saves; Settings shell. Publishes hooks rather than sharing mutable state. |
+| `app/static/workspace.js` | Identity chrome, Team, comments, notifications, presence, account dialogs. Calls queue hooks; must not assign queue/document state. Owns cleanup of listeners for dialogs it creates. |
+| `app/static/history.js` | Browser route history and leave/restore coordination; screen owners implement restoration. |
+| `app/static/autosave.js` | Save scheduling only; `app.js` owns save payloads and navigation safety. |
+| `app/static/review_fields.js` | Registry-driven field widgets; no independent save pipeline. |
+| `app/static/folder_exports.js` | Shared export confirmation and progress UI. |
+| `app/static/page-kit.js`, `app/static/terms.js` | Shared browser API/escaping helpers and configured terminology respectively. No feature state. |
+| `app/static/people.js` | People and invitation cards, reused by Team. |
+| `app/static/appearance.js`, `prompt_builder.js`, `tabs_admin.js`, `access.js`, `models.js`, `backups.js`, `updates.js` | Each owns its named settings panel and any reuse in setup; backend modules own validation and authorization. All paths in this row are under `app/static/`. |
+| `app/static/setup.js` | Setup-step orchestration, using feature panel owners. |
+| `app/static/login-backdrop.js`, `app/static/backdrop.css` | Shared sign-in backdrop rendering and styling. |
+| `app/static/index.html`, `login.html`, `setup.html` | Static shells and script ordering for their respective pages (all under `app/static/`). |
+| `app/static/style.css` | Application layout, component styling and stacking; scope feature selectors to their containers. |
+| `app/static/*.svg` | Application brand assets. |
+| `site/**` | Public marketing site, estimator, and published media; independent of authenticated application state. |
+| `scripts/**` | Explicit operator/build/release/smoke entry points; domain rules stay in `src/incipit/`. |
+| `tests/**` | Behaviour verification; `conftest.py` owns shared app, sign-in and seed fixtures. |
+| `docs/**`, `README.md`, `ARCHITECTURE.md`, `CLAUDE.md` | Specifications, operations, onboarding and development boundaries. |
+| `installer/**`, `MANIFEST.in`, `pyproject.toml`, `VERSION` | Packaging, installer lifecycle and release identity. |
+| `requirements.txt`, `constraints.txt` | Dependency entry point and resolved pins. |
+| `.gitlab-ci.yml`, `pytest.ini`, `.gitignore`, `.gitattributes`, `.env.example`, `.claude/**` | CI, test policy and checkout/development configuration. |
+| `data/**` | Runtime data; never a source-code responsibility or a test output destination. |
+
+Async ownership rules: a screen owns the generation token for requests that can change its
+state; leaving a document invalidates pending opens. A queue load commits its documents and
+folders together only if it is still the newest request. Modal owners remove document-level
+listeners on every close path, including replacement. Polling routes obtain visibility from
+`scoping.py` and aggregate through `db.py`, never one repository lookup per document.

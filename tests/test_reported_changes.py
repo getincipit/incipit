@@ -559,7 +559,7 @@ def test_only_one_of_each_panel_can_be_open_at_a_time():
     source = (STATIC / "workspace.js").read_text(encoding="utf-8")
 
     assert '.rework-overlay")?.remove()' in source
-    assert 'getElementById("reviewer-stats")?.remove()' in source
+    assert 'dismissReviewerStats?.();' in source
 
 
 def test_the_picker_is_wide_enough_for_a_whole_document_title():

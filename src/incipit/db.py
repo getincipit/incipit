@@ -1089,6 +1089,18 @@ def get_new_document_status(conn: sqlite3.Connection, document_id: str) -> str |
     return row["status"] if row else None
 
 
+def count_new_pending_documents(conn: sqlite3.Connection, visible_folders: set[str] | None = None) -> int:
+    """Count pending work in one query, returning folder totals instead of document identities."""
+    if visible_folders is not None and not visible_folders:
+        return 0
+    rows = conn.execute(
+        "SELECT folder_id, COUNT(*) AS total FROM new_documents "
+        "WHERE status IN ('split_confirmed', 'error') GROUP BY folder_id"
+    )
+    return sum(row["total"] for row in rows
+               if visible_folders is None or row["folder_id"] in visible_folders)
+
+
 def get_new_pending_document_ids(conn: sqlite3.Connection, tab_id: int | None = None) -> list[str]:
     """Confirmed groups that haven't been through image-model drafting yet (or errored), site-wide or in one tab."""
     rows = conn.execute(

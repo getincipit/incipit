@@ -1325,10 +1325,11 @@
   // Statistics for one person, opened from their name in Assignments.
   let contributorStats = new Map();
 
+  let dismissReviewerStats = null;
   function showReviewerStats(name) {
     // One panel at a time: clicking a name twice stacked a second copy on the first, and closing
     // the top one left the page looking unresponsive.
-    document.getElementById("reviewer-stats")?.remove();
+    dismissReviewerStats?.();
     const c = contributorStats.get(name);
     const panel = document.createElement("div");
     panel.id = "reviewer-stats";
@@ -1394,12 +1395,16 @@
         toggle.querySelector(".reviewer-stat-more").textContent = open ? "Hide" : "Show";
       });
     });
-    const close = () => panel.remove();
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    const close = () => {
+      panel.remove();
+      document.removeEventListener("keydown", onKey);
+      dismissReviewerStats = null;
+    };
+    dismissReviewerStats = close;
     $("reviewer-stats-close").addEventListener("click", close);
     panel.addEventListener("click", (e) => { if (e.target === panel) close(); });
-    document.addEventListener("keydown", function esc_(e) {
-      if (e.key === "Escape") { close(); document.removeEventListener("keydown", esc_); }
-    });
+    document.addEventListener("keydown", onKey);
   }
 
   async function loadRoster() {
