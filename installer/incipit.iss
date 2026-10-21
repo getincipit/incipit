@@ -35,6 +35,8 @@ OutputBaseFilename=Incipit-{#AppVersion}-setup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
+; Per user by default; an administrator may still run it with /ALLUSERS to put the program under Program Files.
+PrivilegesRequiredOverridesAllowed=commandline
 ArchitecturesInstallIn64BitMode=x64compatible
 ; The tray and the site run from {app}; an update closes them rather than asking someone to.
 CloseApplications=force
@@ -122,6 +124,75 @@ begin
                           or (PageID = wpSelectDir) or (PageID = wpSelectProgramGroup) or (PageID = wpSelectTasks));
 end;
 
+function DataFolder(Param: String): String;
+begin
+  Result := RemoveBackslashUnlessRoot(FolderPage.Values[0]);
+end;
+
+// Program Files and Windows belong to the system: writing there needs administrator rights every
+// time, and Incipit runs under the person's own account.
+function ProtectedPlace(Path: String): Boolean;
+var
+  P: String;
+begin
+  P := AddBackslash(Lowercase(Path));
+  // Setup is a 32-bit program: for it ProgramFiles is the (x86) folder and ProgramW6432 the 64-bit one.
+  Result := (Pos(AddBackslash(Lowercase(GetEnv('ProgramFiles'))), P) = 1)
+    or ((GetEnv('ProgramW6432') <> '') and (Pos(AddBackslash(Lowercase(GetEnv('ProgramW6432'))), P) = 1))
+    or ((GetEnv('ProgramFiles(x86)') <> '') and (Pos(AddBackslash(Lowercase(GetEnv('ProgramFiles(x86)'))), P) = 1))
+    or (Pos(AddBackslash(Lowercase(GetEnv('SystemRoot'))), P) = 1);
+end;
+
+// Whether this account can create and write in the folder; one it had to make is removed again.
+function Writable(Path: String): Boolean;
+var
+  Made: Boolean;
+  Probe: String;
+begin
+  Made := not DirExists(Path);
+  if Made and not ForceDirectories(Path) then begin
+    Result := False;
+    Exit;
+  end;
+  Probe := AddBackslash(Path) + '.incipit-write-test';
+  Result := SaveStringToFile(Probe, 'ok', False);
+  if Result then DeleteFile(Probe);
+  if Made then RemoveDir(Path);
+end;
+
+const
+  ChooseInstead = 'Choose a folder your own Windows account can write to: one in your profile, such as ' +
+    'Documents\Incipit Data, or one on a data drive, such as D:\Incipit. It does not have to be inside your ' +
+    'profile, only writable by the account Incipit starts under.';
+
+// '' when the data folder will do; otherwise what is wrong and what to choose instead.
+function DataFolderProblem(Path: String): String;
+begin
+  Result := '';
+  if ProtectedPlace(Path) then
+    Result := 'The data folder cannot be under Program Files or Windows. Those folders belong to the system ' +
+      'and need administrator rights every time; Incipit runs under your own account, so it could never write ' +
+      'its database there.' + #13#10#13#10 + ChooseInstead
+  else if not Writable(Path) then
+    Result := 'Your account cannot write to ' + Path + '.' + #13#10#13#10 + ChooseInstead;
+end;
+
+// Same for the program's own folder, with the way to Program Files for an administrator.
+function ProgramFolderProblem(Path: String): String;
+begin
+  Result := '';
+  if ProtectedPlace(Path) or not Writable(Path) then
+    Result := 'This install is for your own account, and it cannot write to ' + Path + '. Keep the suggested ' +
+      'location, or to install the program for everyone under Program Files, run this installer from an ' +
+      'administrator prompt with /ALLUSERS.';
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  // A silent install skips the pages' checks; nothing is written until the data folder is known to be usable.
+  Result := DataFolderProblem(DataFolder(''));
+end;
+
 function IsEmptyDir(Path: String): Boolean;
 var
   Found: TFindRec;
@@ -186,8 +257,25 @@ function NextButtonClick(CurPageID: Integer): Boolean;
 var
   Port: Integer;
   Name: String;
+  Problem: String;
 begin
   Result := True;
+  if CurPageID = wpSelectDir then begin
+    Problem := ProgramFolderProblem(WizardDirValue);
+    if Problem <> '' then begin
+      MsgBox(Problem, mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+  end;
+  if CurPageID = FolderPage.ID then begin
+    Problem := DataFolderProblem(FolderPage.Values[0]);
+    if Problem <> '' then begin
+      MsgBox(Problem, mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+  end;
   // A folder already holding other files is used only on purpose; one holding a site is reused as it is.
   if (CurPageID = FolderPage.ID) and DirExists(FolderPage.Values[0])
       and not FileExists(AddBackslash(FolderPage.Values[0]) + 'incipit.toml')
@@ -210,11 +298,6 @@ begin
       Result := False;
     end;
   end;
-end;
-
-function DataFolder(Param: String): String;
-begin
-  Result := RemoveBackslashUnlessRoot(FolderPage.Values[0]);
 end;
 
 function SiteName(Param: String): String;

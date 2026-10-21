@@ -164,6 +164,7 @@ openrouter_api_key = "" # moved into the database, encrypted, at start (M5); ent
 | More than 200 requests at once through the tunnel | some requests fail with 429 | nothing | fewer people at once, or direct access |
 | The site is killed outright (the tray's Stop, a crash) | nothing | Windows ends cloudflared with it; a leftover from an earlier run is ended at the next start | nothing |
 | The tray itself fails while starting (a bad menu, a missing library) | the error, in the terminal or tray.log | stops the site it had started, so the port is not left held by a headless server | reinstalls or reports it |
+| The chosen data folder (or program folder) is one the account cannot write to, such as C:\Program Files | the installer says why and what to choose instead, before Next; a silent install stops before writing anything | nothing is created | picks a folder the account can write to (a data drive is fine), or runs the installer as an administrator with /ALLUSERS for the program alone |
 | cloudflared is missing from the install | "The tunnel program is missing; reinstall Incipit" | opens no tunnel | reinstalls |
 | Telegraph is unreachable or refuses | "The page could not be updated" with Telegraph's reason | tries again at the next address | shares the tunnel address directly meanwhile |
 | Public DNS is slow to learn a new address | "Waiting for the new address to be known on the internet…" | asks every 3 s for 3 minutes, then keeps the last address on the page | waits; the next start tries again |
@@ -323,3 +324,8 @@ Complete.
   setup wizard, which the tray opens, never appeared. The menu is now built by `tray.pystray_menu`
   from two-parameter closures (tested against the real pystray), a tray that fails to start stops its
   site, and the host's own browser reaches `/setup` without the token (see M2). Fixed in v0.1.2.
+- **Regression, 2026-10-21 (same report):** the data folder was pointed at `C:\Program Files`, which the
+  account cannot write to under a per-user install, and nothing said so; the data went to the default
+  on a retry. The installer now checks both folders (`ProtectedPlace`, `Writable`) at Next and again in
+  `PrepareToInstall` for silent runs, and explains what to choose; `/ALLUSERS` is allowed for the
+  program's folder. The guide gained "Choosing the data folder". Shipped in v0.1.3.

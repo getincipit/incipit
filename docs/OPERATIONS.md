@@ -24,6 +24,20 @@ share, checks for updates and shows when the last backup happened. The site only
 this computer is on and the icon is running; "Start Incipit when I log in" (Settings → Access) keeps
 it that way.
 
+## Choosing the data folder
+
+Incipit runs under the Windows account that installed it, and it writes to the data folder all day:
+new scans, drafts, reviews, backups. So the folder must be one **that account can write to**. It does
+not have to be inside the account's profile: a folder on a second drive (`D:\Incipit`) is a good
+choice, and keeps the data off the system disk. Two places will not work, and the installer says so:
+`C:\Program Files` (and `Windows`), which belong to the system and need administrator rights every
+time, and any folder another account owns. If several people share the host computer, install
+Incipit from the account that will stay signed in, and keep the data folder outside the other
+accounts' profiles.
+
+The folder can be moved later from Settings → Access; the program copies everything, points itself
+at the new place and restarts.
+
 ## Backups
 
 The site backs itself up while it runs: the scans, records and exports every two minutes, and the

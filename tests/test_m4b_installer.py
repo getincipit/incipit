@@ -1297,3 +1297,25 @@ def test_the_trays_menu_builds_with_the_real_pystray(monkeypatch):
     for entry in entries:
         entry(None)
     assert len(list(menu.items)) == len(items) and "install" in calls and "backup" in calls
+
+
+# Regression (user report 2026-10-21): the first install was pointed at C:\Program Files, which the
+# person's own account cannot write to, and nothing explained why it did not work.
+
+
+def test_the_installer_refuses_a_data_folder_the_account_cannot_write_and_says_what_to_choose():
+    script = (ROOT / "installer" / "incipit.iss").read_text(encoding="utf-8")
+    assert "function DataFolderProblem" in script and "function Writable" in script and "function ProtectedPlace" in script
+    assert "cannot be under Program Files or Windows" in script and r"Documents\Incipit Data, or one on a data drive, such as D:\Incipit" in script
+    assert "Problem := DataFolderProblem(FolderPage.Values[0]);" in script
+
+
+def test_the_installer_checks_the_data_folder_before_a_silent_install_writes_anything():
+    script = (ROOT / "installer" / "incipit.iss").read_text(encoding="utf-8")
+    assert "function PrepareToInstall" in script and "Result := DataFolderProblem(DataFolder(''));" in script
+
+
+def test_the_installer_explains_program_files_for_the_program_too():
+    script = (ROOT / "installer" / "incipit.iss").read_text(encoding="utf-8")
+    assert "PrivilegesRequiredOverridesAllowed=commandline" in script
+    assert "Problem := ProgramFolderProblem(WizardDirValue);" in script and "/ALLUSERS" in script
