@@ -1,7 +1,8 @@
-"""Publishes site/ (the download page) to GitHub Pages, which serves the gh-pages branch.
+"""Publishes site/ (the download page) to GitHub Pages.
 
-Copies the shared drawings in, builds a branch holding only site/'s files at its root, and pushes it.
-No workflow is involved, so it needs nothing beyond push access to the repository.
+The page lives in its own repository, getincipit/getincipit.github.io, which GitHub serves at the
+organisation's root address; its main branch holds only site/'s files. Copies the shared drawings in,
+builds that branch and force-pushes it. No workflow is involved, so it needs nothing beyond push access.
 
     .venv/Scripts/python.exe scripts/publish_site.py
 """
@@ -19,8 +20,9 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_site  # noqa: E402
 
-BRANCH = "gh-pages"
-PAGE_URL = "https://parthaped.github.io/incipit/"
+SITE_REPOSITORY = "getincipit/getincipit.github.io"
+BRANCH = "main"
+PAGE_URL = "https://getincipit.github.io/"
 
 
 def git(*args, cwd: Path) -> str:
@@ -29,7 +31,6 @@ def git(*args, cwd: Path) -> str:
 
 def publish() -> str:
     build_site.build()
-    remote = git("remote", "get-url", "origin", cwd=ROOT)
     with tempfile.TemporaryDirectory(prefix="incipit-pages-") as tmp:
         work = Path(tmp) / "pages"
         shutil.copytree(ROOT / "site", work)
@@ -38,7 +39,7 @@ def publish() -> str:
         git("add", "-A", cwd=work)
         git("-c", "user.name=incipit", "-c", "user.email=incipit@users.noreply.github.com", "commit", "-q", "-m",
             f"Publish the download page ({git('rev-parse', '--short', 'HEAD', cwd=ROOT)})", cwd=work)
-        git("push", "-q", "--force", remote, f"{BRANCH}:{BRANCH}", cwd=work)
+        git("push", "-q", "--force", f"https://github.com/{SITE_REPOSITORY}.git", f"{BRANCH}:{BRANCH}", cwd=work)
     return PAGE_URL
 
 

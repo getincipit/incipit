@@ -352,7 +352,7 @@ def test_the_feed_the_release_script_writes_is_the_one_the_updater_reads(tmp_pat
     import release
     installer = tmp_path / "Incipit-9.2.0-setup.exe"
     installer.write_bytes(INSTALLER)
-    written = release.feed("9.2.0", "Notes.", installer, "parthaped/incipit")
+    written = release.feed("9.2.0", "Notes.", installer, "getincipit/incipit")
     _web(monkeypatch, written)
     found = updates.check()
     path = updates.download(found["release"], folder=tmp_path / "downloaded")
@@ -363,5 +363,5 @@ def test_installed_copies_read_the_feed_through_githubs_latest_release_link():
     import sys
     sys.path.insert(0, str(ROOT / "scripts"))
     import release
-    assert release.feed_address("parthaped/incipit") == \
-        "https://github.com/parthaped/incipit/releases/latest/download/latest.json"
+    assert release.feed_address("getincipit/incipit") == \
+        "https://github.com/getincipit/incipit/releases/latest/download/latest.json"

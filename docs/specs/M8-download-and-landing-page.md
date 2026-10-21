@@ -38,9 +38,9 @@ real program, an estimator of the time it saves, and the download.
   cannot.
 - **Motion.** CSS transforms and opacity only, driven by IntersectionObserver; `prefers-reduced-motion`
   shows everything at rest.
-- **Publishing.** `scripts/publish_site.py` pushes `site/` to the repository's `gh-pages` branch, which
-  GitHub Pages serves at `https://parthaped.github.io/incipit/`; no workflow, so nothing beyond push
-  access is needed.
+- **Publishing.** `scripts/publish_site.py` pushes `site/` to the `main` branch of a second repository,
+  `getincipit/getincipit.github.io`, which GitHub Pages serves at `https://getincipit.github.io/`; no
+  workflow, so nothing beyond push access is needed.
 
 ## Non-goals
 
@@ -57,7 +57,7 @@ translations.
 - AC-6: The page loads no script, style or font from another site, uses no analytics, and every local file it references exists.
 - AC-7: With `prefers-reduced-motion` the page shows every section at rest; otherwise its motion uses only transforms and opacity.
 - AC-8: At phone width (375 px) and desktop width the page has no horizontal overflow and no console errors. *Verified outside the suite, in the browser.*
-- AC-9: `scripts/publish_site.py` publishes `site/` to GitHub Pages through the `gh-pages` branch.
+- AC-9: `scripts/publish_site.py` publishes `site/` to GitHub Pages through the organisation's `getincipit.github.io` repository.
 - AC-10: The suite, residue test, spec coverage, `node --check` and `scripts/smoke_m8.py` pass. *Verified outside the suite, by the module's checks and smoke run.*
 
 ## Failure table
@@ -83,7 +83,7 @@ section is visible without scrolling into it and the hero is already at rest.
 - `scripts/smoke_m8.py`: 18 checks passed (375 px and 1440 px, light and dark, reduced motion).
 - Looked at by hand in Chromium at 1440 px and 375 px: the pile, the settle, the finished draft; no
   horizontal overflow, no console errors. The published page is at
-  `https://parthaped.github.io/incipit/`.
+  `https://getincipit.github.io/`.
 - Found along the way: the steps section already owned the class `.stage`, so the hero's became
   `.desk`; the smoke's overflow check caught it.
 
@@ -114,9 +114,12 @@ section is visible without scrolling into it and the hero is already at rest.
   panel alone, since the dimmed site behind the window only blurred the picture.
 - **The download comes first.** The page's first screen is the download, as on every reference
   page looked at (Claude, Linear, Raycast); the explanation follows for those who want it.
-- **GitHub Pages from the `gh-pages` branch.** The first plan was an Actions workflow, which the
+- **GitHub Pages from a branch the script pushes.** The first plan was an Actions workflow, which the
   publishing token could not create (no `workflow` scope); a branch the publish script force-pushes
-  needs nothing but push access and has one fewer moving part.
+  needs nothing but push access and has one fewer moving part. First a `gh-pages` branch of the code
+  repository, served at `parthaped.github.io/incipit/`; then (user direction 2026-10-21: an address
+  without a person's name, at no cost) the code moved to the free organisation `getincipit` and the page
+  to its own repository `getincipit.github.io`, which GitHub serves at the organisation's root.
 - **No analytics and nothing loaded from elsewhere**, so the page tells no one who visited and
   works offline once loaded, except for the release lookup, which fails quietly.
 

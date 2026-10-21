@@ -126,11 +126,11 @@ def test_ac4_every_default_is_labelled_as_an_assumption_or_a_measurement():
 
 def test_ac5_every_download_button_leads_to_the_newest_release():
     buttons = re.findall(r'<a[^>]*data-download[^>]*>', PAGE)
-    assert buttons and all("github.com/parthaped/incipit/releases/latest" in b for b in buttons)
+    assert buttons and all("github.com/getincipit/incipit/releases/latest" in b for b in buttons)
 
 
 def test_ac5_the_page_reads_the_newest_release_from_githubs_api():
-    assert "api.github.com/repos/${REPOSITORY}/releases/latest" in SCRIPT and 'REPOSITORY = "parthaped/incipit"' in SCRIPT
+    assert "api.github.com/repos/${REPOSITORY}/releases/latest" in SCRIPT and 'REPOSITORY = "getincipit/incipit"' in SCRIPT
 
 
 def test_ac5_the_page_falls_back_to_the_releases_page():
@@ -195,6 +195,7 @@ def test_ac7_without_scripts_nothing_is_hidden():
 # ---------- AC-9: publishing ----------
 
 
-def test_ac9_the_publish_script_pushes_the_site_folder_to_the_pages_branch():
+def test_ac9_the_publish_script_pushes_the_site_folder_to_the_pages_repository():
     script = (ROOT / "scripts" / "publish_site.py").read_text(encoding="utf-8")
-    assert 'BRANCH = "gh-pages"' in script and 'shutil.copytree(ROOT / "site", work)' in script and ".nojekyll" in script
+    assert 'SITE_REPOSITORY = "getincipit/getincipit.github.io"' in script and 'PAGE_URL = "https://getincipit.github.io/"' in script
+    assert 'shutil.copytree(ROOT / "site", work)' in script and ".nojekyll" in script

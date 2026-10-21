@@ -3,7 +3,7 @@
 (function () {
   "use strict";
 
-  const REPOSITORY = "parthaped/incipit";
+  const REPOSITORY = "getincipit/incipit";
   const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Sections rise as they come into view; at rest for readers who prefer less motion.

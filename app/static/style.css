@@ -1521,10 +1521,17 @@ select.meta-input { appearance: auto; cursor: pointer; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   border-top: 1px solid var(--border); padding-top: 12px; flex-wrap: wrap;
 }
-.split-decision-main { display: flex; gap: 10px; }
+.split-decision-main { display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; }
 .split-decision-main .btn { min-width: 148px; }
 .btn.is-approved { background: var(--accent); border-color: var(--accent); }
 .split-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-muted); }
+
+/* The list and viewer need their own rows once the workspace can no longer fit both columns. */
+@media (max-width: 1100px) {
+  .split-review-body { grid-template-columns: minmax(0, 1fr); }
+  .split-doc-panel { max-height: 240px; }
+  .split-viewer-stage { min-width: 0; }
+}
 
 /* Narrow viewports: shrink the sidebar and stack the detail view */
 @media (max-width: 900px) {
@@ -1538,7 +1545,7 @@ select.meta-input { appearance: auto; cursor: pointer; }
   .app-shell { flex-direction: column; height: auto; min-height: 100vh; }
   .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 12px 16px; }
   .sidebar-brand { padding: 0 8px 0 0; margin-right: auto; }
-  .sidebar-section { margin-bottom: 0; }
+  .sidebar-section { width: 100%; min-width: 0; margin-bottom: 0; }
   .sidebar-spacer, .sidebar-footer { display: none; }
   .main { height: auto; }
 }
@@ -2476,6 +2483,10 @@ button.pill-admin:focus-visible { outline: 2px solid var(--accent); outline-offs
 .theme-option[aria-checked="true"] { background: var(--panel); color: var(--accent); box-shadow: var(--shadow); }
 .theme-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .theme-option svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 520px) {
+  .theme-choice { max-width: 100%; flex-wrap: wrap; }
+  .theme-option { gap: 5px; padding: 7px 9px; }
+}
 
 /* ---------- M2: site settings, appearance, people and setup ---------- */
 
@@ -2496,8 +2507,8 @@ button.pill-admin:focus-visible { outline: 2px solid var(--accent); outline-offs
 .auth-error { margin: 8px 0; padding: 9px 12px; border-radius: var(--radius-sm); font-size: 13px;
   background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
 
-.org-id { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; font-size: 13px; }
-.org-id code { padding: 3px 8px; border-radius: var(--radius-sm); background: var(--gray-bg); letter-spacing: .06em; }
+.org-id { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 4px; font-size: 13px; }
+.org-id code { padding: 3px 8px; border-radius: var(--radius-sm); background: var(--gray-bg); letter-spacing: .06em; overflow-wrap: anywhere; }
 
 /* The appearance editor: the form, and the sign-in preview beside it on a wide screen. */
 .appearance-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 18px; align-items: start; }
@@ -2713,6 +2724,8 @@ button.pill-admin:focus-visible { outline: 2px solid var(--accent); outline-offs
 .access-name-field input { flex: 1 1 auto; min-width: 0; border: 0 !important; box-shadow: none !important; outline: none; padding: 8px 4px !important; }
 .access-name-scheme, .access-name-suffix { display: flex; align-items: center; padding: 0 10px; font-weight: 400; color: var(--text-muted);
   background: var(--surface-muted); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; white-space: nowrap; }
+/* Local paths can be longer than the Settings window on a phone. */
+#settings-panel-access .setting-note code { white-space: normal; overflow-wrap: anywhere; }
 .access-link[data-kind="site"] { border-color: var(--accent); background: var(--accent-soft); }
 .access-link[data-kind="site"] .access-link-url { font-weight: 600; color: var(--accent-ink); }
 

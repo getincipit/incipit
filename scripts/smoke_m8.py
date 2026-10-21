@@ -59,7 +59,7 @@ def main() -> int:
                 if width == 1440 and theme == "light":
                     hrefs = page.eval_on_selector_all("[data-download]", "els => els.map((a) => a.href)")
                     checks.ok("2 every download button leads to the newest release",
-                              hrefs and all("github.com/parthaped/incipit/releases" in h for h in hrefs), str(hrefs)[:200])
+                              hrefs and all("github.com/getincipit/incipit/releases" in h for h in hrefs), str(hrefs)[:200])
                     before = page.inner_text('[data-out="saved"]')
                     page.fill('#estimator [name="documents"]', "2000")
                     time.sleep(0.2)
