@@ -17,7 +17,7 @@ ROOTS = [
     "requests", "fsspec", "python-dotenv", "Pillow", "fastapi", "uvicorn", "python-multipart",
     "pytest", "pytest-xdist", "pytest-timeout", "httpx", "pyflakes",
     # The data folder's file, and the tray and build extras.
-    "tomli-w", "zeroconf", "cryptography", "pystray", "pyinstaller", "resvg-py",
+    "tomli-w", "zeroconf", "cryptography", "pystray", "pyinstaller", "resvg-py", "playwright",
 ]
 
 HEADER = """\

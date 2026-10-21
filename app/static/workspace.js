@@ -1218,6 +1218,8 @@
       // clicked.
       queueView.style.display = on ? "none" : "";
       if ($("detail-view")) $("detail-view").style.display = on ? "none" : "";
+      // A split being confirmed is another screen of the queue; it stayed drawn under Team.
+      if ($("split-review-view")) $("split-review-view").style.display = on ? "none" : "";
       // The document's "Back" bar belongs to that document, so it goes with it rather than staying
       // over Team; "" hands it back to app.js, which decides from the view that is then showing.
       if ($("nav-controls")) $("nav-controls").style.display = on ? "none" : "";

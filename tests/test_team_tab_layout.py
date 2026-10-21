@@ -59,3 +59,10 @@ def test_the_team_column_is_centred_in_a_wide_window():
     css = (STATIC / "style.css").read_text(encoding="utf-8")
     rule = re.search(r"\.team-panel \{([^}]*)\}", css).group(1).replace(" ", "")
     assert "max(40px,calc((100%-1180px)/2))" in rule
+
+
+def test_the_team_tab_hides_a_split_being_confirmed():
+    """Found by the M8 screenshots: leaving a split for Team left the split drawn beneath the Team panel."""
+    source = (STATIC / "workspace.js").read_text(encoding="utf-8")
+    show_team = source[source.index("    function showTeam(on)"):source.index("    function showTeam(on)") + 4000]
+    assert '$("split-review-view").style.display = on ? "none" : ""' in show_team

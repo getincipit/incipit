@@ -47,10 +47,19 @@ def text_files() -> list[Path]:
             and p.name != THIS_FILE and "docs/specs/" not in p.as_posix() and p.is_file()]
 
 
+# The download page's screenshots: made by scripts/capture_screens.py from invented material, never a scan.
+GENERATED_IMAGES = "site/screens/"
+
+
 def test_ac1_no_scan_database_or_binary_is_in_the_repository():
     found = [p.relative_to(ROOT).as_posix() for p in tracked_files()
              if p.suffix.lower() in BINARY_SUFFIXES]
-    assert found == [], found
+    assert [f for f in found if not (f.startswith(GENERATED_IMAGES) and f.endswith(".webp"))] == [], found
+
+
+def test_the_only_images_allowed_are_the_download_pages_own_screenshots():
+    found = [p.relative_to(ROOT).as_posix() for p in tracked_files() if p.suffix.lower() in BINARY_SUFFIXES]
+    assert all(f.startswith(GENERATED_IMAGES) and f.endswith(".webp") for f in found)
 
 
 def test_ac1_no_data_record_is_in_the_repository():

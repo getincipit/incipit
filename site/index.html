@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download Incipit</title>
+<meta name="description" content="Incipit drafts transcriptions of your archive's scans and your team reviews them in a browser. Install it on one computer of yours.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="windows" viewBox="0 0 16 16"><path d="M0 2.2 6.5 1.3v6.3H0zM7.3 1.2 16 0v7.6H7.3zM0 8.4h6.5v6.3L0 13.8zM7.3 8.4H16V16l-8.7-1.2z" fill="currentColor"/></symbol>
+  <symbol id="arrow" viewBox="0 0 16 16"><path d="M8 2v9m0 0 3.5-3.5M8 11 4.5 7.5M3 14h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="nav" id="top">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#top" aria-label="Incipit"><img src="logo.svg" alt="" class="pen"><span>ncipit</span></a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#yours">On your computer</a>
+      <a href="#time">Time saved</a>
+      <a href="#name">The name</a>
+    </nav>
+    <a class="button button-dark button-small" href="https://github.com/parthaped/incipit/releases/latest" data-download>
+      <svg class="icon"><use href="#windows"/></svg>Download</a>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <img src="favicon.svg" alt="" class="app-icon rise">
+    <h1 class="display rise">Download Incipit</h1>
+    <p class="hero-sub rise">Draft transcriptions of your archive's scans. Your team reviews them in a browser.</p>
+    <div class="hero-actions rise">
+      <a class="button button-dark button-large" href="https://github.com/parthaped/incipit/releases/latest" data-download>
+        <svg class="icon"><use href="#windows"/></svg>Download for Windows</a>
+      <a class="button button-quiet button-large" href="https://github.com/parthaped/incipit/releases">All releases</a>
+    </div>
+    <p class="meta rise" data-version>Windows 10 and 11, 64-bit</p>
+  </section>
+
+  <section class="showcase">
+    <figure class="stage-card rise-late">
+      <div class="frame">
+        <picture>
+          <source srcset="screens/review-dark.webp" media="(prefers-color-scheme: dark)">
+          <img src="screens/review-light.webp" width="1440" height="900" alt="The review screen: a scanned letter on the left, its drafted transcription and catalogue fields on the right.">
+        </picture>
+      </div>
+    </figure>
+  </section>
+
+  <section class="start" id="start">
+    <div class="start-head reveal">
+      <h2 class="display-2">Get started</h2>
+      <p class="lede-left">Install Incipit on one computer that stays on. Everyone else opens it in a browser.</p>
+    </div>
+    <div class="start-cards">
+      <article class="panel reveal">
+        <h3 class="display-3">The host computer</h3>
+        <p class="panel-sub">Keeps the scans, the drafts and the backups in a folder you choose.</p>
+        <ul class="rows">
+          <li><span class="row-name"><svg class="icon"><use href="#windows"/></svg>Windows 10 and 11</span>
+            <a class="button button-outline button-small" href="https://github.com/parthaped/incipit/releases/latest" data-download>Download</a></li>
+          <li><span class="row-name muted">macOS</span><span class="row-note">Not yet</span></li>
+          <li><span class="row-name muted">Linux</span><span class="row-note">Not yet</span></li>
+        </ul>
+      </article>
+      <article class="panel reveal">
+        <h3 class="display-3">Your team</h3>
+        <p class="panel-sub">Nothing to install. They open your site's address and sign in.</p>
+        <ul class="rows">
+          <li><span class="row-name">On your network</span><span class="row-note mono">your-archive.local</span></li>
+          <li><span class="row-name">From anywhere</span><span class="row-note">One link that never changes</span></li>
+          <li><span class="row-name">Any browser</span><span class="row-note">Chrome, Edge, Safari, Firefox</span></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="story" id="how">
+    <div class="section-head reveal">
+      <p class="eyebrow">How it works</p>
+      <h2 class="display-2">From a box of scans to a finished folder.</h2>
+    </div>
+    <div class="steps">
+      <ol class="steps-copy">
+        <li class="step" data-screen="queue">
+          <span class="step-number">1</span>
+          <h3>Upload the scans</h3>
+          <p>Drop in a folder's pages as they came off the scanner, in order. Every image is kept in your data folder and
+            backed up.</p>
+        </li>
+        <li class="step" data-screen="split">
+          <span class="step-number">2</span>
+          <h3>See where each document starts</h3>
+          <p>The model proposes where one letter ends and the next begins, and spots a page scanned twice. You fix any
+            boundary it got wrong, name the documents, and confirm.</p>
+        </li>
+        <li class="step" data-screen="review">
+          <span class="step-number">3</span>
+          <h3>A draft for every document</h3>
+          <p>Each one is transcribed and catalogued in the background: the text page by page, the words it was unsure of,
+            and the fields your project records, written your project's way.</p>
+        </li>
+        <li class="step" data-screen="team">
+          <span class="step-number">4</span>
+          <h3>Review, approve, export</h3>
+          <p>Reviewers check each draft against the scan and accept or flag it. You approve the folder and export images,
+            transcriptions, records and a spreadsheet together.</p>
+        </li>
+      </ol>
+      <div class="steps-stage" aria-hidden="true">
+        <figure class="frame stage">
+          <picture class="stage-shot is-on" data-for="queue"><source srcset="screens/queue-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/queue-light.webp" alt="" width="1440" height="900" loading="lazy"></picture>
+          <picture class="stage-shot" data-for="split"><source srcset="screens/split-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/split-light.webp" alt="" width="1440" height="900" loading="lazy"></picture>
+          <picture class="stage-shot" data-for="review"><source srcset="screens/review-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/review-light.webp" alt="" width="1440" height="900" loading="lazy"></picture>
+          <picture class="stage-shot" data-for="team"><source srcset="screens/team-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/team-light.webp" alt="" width="1440" height="900" loading="lazy"></picture>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="feature-grid">
+      <div class="feature-copy reveal">
+        <p class="eyebrow">Review instead of transcribe</p>
+        <h2 class="display-2">Your people check. They do not type.</h2>
+        <p class="lede-left">The scan and its draft sit side by side. Reviewers correct what is wrong, leave a comment where a
+          page is hard to read, and move on. Every change is kept, and nothing a reviewer types is lost.</p>
+      </div>
+      <div class="feature-copy reveal">
+        <p class="eyebrow">A prompt that knows your period</p>
+        <h2 class="display-2">Tell it about your collection, once.</h2>
+        <p class="lede-left">The years and languages, the people and places that recur, your document types, how you write
+          names, dates and places. Incipit turns your answers into the model's instructions, shows them to you, and keeps
+          every version.</p>
+      </div>
+    </div>
+    <figure class="frame wide reveal">
+      <picture>
+        <source srcset="screens/settings-prompt-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="screens/settings-prompt-light.webp" width="1440" height="900" loading="lazy" alt="The prompt builder: questions on the left, the compiled prompt on the right.">
+      </picture>
+    </figure>
+  </section>
+
+  <section class="yours" id="yours">
+    <div class="section-head reveal">
+      <p class="eyebrow">On your own computer</p>
+      <h2 class="display-2">Your archive never leaves your building.</h2>
+      <p class="lede">No account with us and nothing hosted by us. The only thing you pay for is the model service you
+        choose, and you can run your own.</p>
+    </div>
+    <div class="cards">
+      <article class="card reveal">
+        <figure class="frame small"><picture><source srcset="screens/wizard-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/wizard-light.webp" width="1440" height="900" loading="lazy" alt="The setup steps."></picture></figure>
+        <h3>Set up in a few steps</h3>
+        <p>The installer asks where to keep the data. The first visit walks you through the name, the collection, the model,
+          the tabs and the team.</p>
+      </article>
+      <article class="card reveal">
+        <figure class="frame small"><picture><source srcset="screens/settings-access-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/settings-access-light.webp" width="1440" height="900" loading="lazy" alt="Settings, Access."></picture></figure>
+        <h3>Reach it by name, or from anywhere</h3>
+        <p>Your team opens <span class="mono">your-archive.local</span>. From outside, Incipit opens the router for you, or
+          uses a free tunnel when it cannot.</p>
+      </article>
+      <article class="card reveal">
+        <figure class="frame small"><picture><source srcset="screens/settings-backups-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/settings-backups-light.webp" width="1440" height="900" loading="lazy" alt="Settings, Backups."></picture></figure>
+        <h3>Backed up while it runs</h3>
+        <p>Every few minutes, to another drive you choose. Any snapshot can be restored into a new folder.</p>
+      </article>
+      <article class="card reveal">
+        <figure class="frame small"><picture><source srcset="screens/settings-usage-dark.webp" media="(prefers-color-scheme: dark)"><img src="screens/settings-usage-light.webp" width="1440" height="900" loading="lazy" alt="Settings, Usage."></picture></figure>
+        <h3>Every call accounted for</h3>
+        <p>Each request to the model is recorded with its cost, and drafting stops at the cap you set. Updates install when
+          you say so.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="time" id="time">
+    <div class="section-head reveal">
+      <p class="eyebrow">Time saved</p>
+      <h2 class="display-2">What would your collection take?</h2>
+      <p class="lede">Change any number. The defaults are assumptions, not promises: time a few documents of your own and put
+        your figures in.</p>
+    </div>
+    <form class="estimator reveal" id="estimator" onsubmit="return false">
+      <div class="inputs">
+        <label>Documents<input name="documents" inputmode="numeric" value="500"></label>
+        <label>Pages per document<input name="pagesPerDocument" inputmode="decimal" value="1.6"><small>measured on one archive: 1.55</small></label>
+        <label>Minutes to type a page by hand<input name="transcribeMinutesPerPage" inputmode="decimal" value="20"><small>assumption</small></label>
+        <label>Minutes to catalogue a document by hand<input name="indexMinutesPerDocument" inputmode="decimal" value="10"><small>assumption</small></label>
+        <label>Minutes to review a drafted page<input name="reviewMinutesPerPage" inputmode="decimal" value="5"><small>assumption</small></label>
+        <label>Minutes to check a drafted record<input name="reviewIndexMinutesPerDocument" inputmode="decimal" value="2"><small>assumption</small></label>
+        <label>Model's seconds per page<input name="machineSecondsPerPage" inputmode="decimal" value="11"><small>measured: median of 154 documents, one archive</small></label>
+        <label>Model cost per page ($)<input name="costPerPage" inputmode="decimal" value="0.002"><small>assumption; depends on the model</small></label>
+      </div>
+      <div class="results" aria-live="polite">
+        <div class="result people">
+          <span class="result-label">People's time saved</span>
+          <span class="result-figure" data-out="saved">—</span>
+          <span class="result-note" data-out="peopleNote"></span>
+        </div>
+        <div class="result">
+          <span class="result-label">The model's time</span>
+          <span class="result-figure" data-out="machine">—</span>
+          <span class="result-note">Unattended, while nobody waits.</span>
+        </div>
+        <div class="result">
+          <span class="result-label">Model cost</span>
+          <span class="result-figure" data-out="cost">—</span>
+          <span class="result-note">Paid to the model service you choose.</span>
+        </div>
+      </div>
+      <p class="meta">People's time and the model's time are different kinds of time, so they are shown apart and never added up.</p>
+    </form>
+  </section>
+
+  <section class="name" id="name">
+    <div class="name-inner reveal">
+      <p class="eyebrow">The name</p>
+      <p class="name-word">Incipit</p>
+      <p class="name-pron">/ˈɪn.sɪ.pɪt/ &nbsp;·&nbsp; Latin, “here begins”</p>
+      <p class="lede">Before books had titles, a text was known by its opening words. Scribes marked the start of a work
+        with <em>incipit</em>, “here begins”, and its close with <em>explicit</em>, “here it ends”, and catalogues still
+        list letters and manuscripts by their incipit, the first line they begin with. Here, it is where the work on a
+        collection begins: the draft comes first, so your team begins by checking, not typing.</p>
+    </div>
+  </section>
+
+  <section class="download" id="download">
+    <div class="download-card reveal">
+      <img src="favicon.svg" alt="" class="app-icon app-icon-small">
+      <h2 class="display-2">Begin with Incipit.</h2>
+      <a class="button button-dark button-large" href="https://github.com/parthaped/incipit/releases/latest" data-download>
+        <svg class="icon"><use href="#windows"/></svg>Download for Windows</a>
+      <p class="meta" data-release>Windows 10 and 11, 64-bit</p>
+      <details class="release-notes" data-notes hidden><summary>What's new</summary><div data-notes-body></div></details>
+      <div class="needs">
+        <div><h3>A computer that stays on</h3><p>Windows 10 or 11, 64-bit, with room for your scans.</p></div>
+        <div><h3>A model to draft with</h3><p>An <a href="https://openrouter.ai">OpenRouter</a> account, paid for what you use, or a model server of your own.</p></div>
+        <div><h3>A browser for each reviewer</h3><p>On your network or, if you choose, from anywhere.</p></div>
+      </div>
+      <p class="meta">The installer is not yet signed, so Windows may say it does not recognise it: choose
+        <em>More info</em>, then <em>Run anyway</em>. Read the <a href="https://github.com/parthaped/incipit/blob/main/docs/OPERATIONS.md">administrator's guide</a>.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-brand"><img src="logo.svg" alt="" class="pen">ncipit</span>
+    <a href="https://github.com/parthaped/incipit/releases">Releases</a>
+    <a href="https://github.com/parthaped/incipit/blob/main/docs/OPERATIONS.md">Administrator's guide</a>
+    <a href="https://github.com/parthaped/incipit">Source</a>
+  </div>
+</footer>
+
+<script src="estimator.js"></script>
+<script src="site.js"></script>
+</body>
+</html>
