@@ -171,6 +171,6 @@ def test_ac7_without_scripts_nothing_is_hidden():
 # ---------- AC-9: publishing ----------
 
 
-def test_ac9_a_workflow_publishes_the_site_folder_to_pages():
-    workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
-    assert "actions/upload-pages-artifact" in workflow and "path: site" in workflow and "actions/deploy-pages" in workflow
+def test_ac9_the_publish_script_pushes_the_site_folder_to_the_pages_branch():
+    script = (ROOT / "scripts" / "publish_site.py").read_text(encoding="utf-8")
+    assert 'BRANCH = "gh-pages"' in script and 'shutil.copytree(ROOT / "site", work)' in script and ".nojekyll" in script

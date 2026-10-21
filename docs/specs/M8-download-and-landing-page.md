@@ -35,8 +35,9 @@ real program, an estimator of the time it saves, and the download.
   cannot.
 - **Motion.** CSS transforms and opacity only, driven by IntersectionObserver; `prefers-reduced-motion`
   shows everything at rest.
-- **Publishing.** A GitHub Actions workflow deploys `site/` to GitHub Pages on each push to `main`
-  that touches it.
+- **Publishing.** `scripts/publish_site.py` pushes `site/` to the repository's `gh-pages` branch, which
+  GitHub Pages serves at `https://parthaped.github.io/incipit/`; no workflow, so nothing beyond push
+  access is needed.
 
 ## Non-goals
 
@@ -53,7 +54,7 @@ translations.
 - AC-6: The page loads no script, style or font from another site, uses no analytics, and every local file it references exists.
 - AC-7: With `prefers-reduced-motion` the page shows every section at rest; otherwise its motion uses only transforms and opacity.
 - AC-8: At phone width (375 px) and desktop width the page has no horizontal overflow and no console errors. *Verified outside the suite, in the browser.*
-- AC-9: A workflow publishes `site/` to GitHub Pages from `main`.
+- AC-9: `scripts/publish_site.py` publishes `site/` to GitHub Pages through the `gh-pages` branch.
 - AC-10: The suite, residue test, spec coverage, `node --check` and `scripts/smoke_m8.py` pass. *Verified outside the suite, by the module's checks and smoke run.*
 
 ## Failure table
