@@ -11,7 +11,7 @@ from urllib.parse import quote
 from fastapi import Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
-from . import accounts, bootstrap, collab, db, people_routes, presence, security, site_routes, site_settings, tunnel
+from . import accounts, bootstrap, collab, db, people_routes, presence, security, site_routes, site_settings, tunnel, updates
 from .assets import APP_STATIC_DIR
 
 SESSION_COOKIE = "incipit_session"
@@ -115,6 +115,10 @@ def install(app, settings) -> None:
     @app.middleware("http")
     async def gate(request: Request, call_next):
         path = request.url.path
+        if (path in ("/", "/login") and security.at_the_host(request) and not bootstrap.has_owner(settings.db_path)
+                and site_settings.bootstrap_path(settings.db_path).is_file()):
+            # Setup is waiting and this is the host's own browser: straight to the wizard.
+            return security.add_browser_headers(RedirectResponse("/setup", status_code=303))
         if is_public(path):
             # Public pages may still differ for someone signed in (the setup wizard does).
             request.state.user = current_user(request)
@@ -642,7 +646,9 @@ def _login_html(site: dict, error: str = "", next: str = "/", tab: str = "login"
         error = error or "Joining this site is closed. Ask an administrator for an account."
         tab = "login"
     logo = f"/site/assets/{look['logo_asset']}" if look.get("logo_asset") else "/logo.svg"
-    favicon = f"/site/assets/{look['favicon_asset']}" if look.get("favicon_asset") else "/favicon.svg"
+    # Versioned, so a browser that cached another program's icon at this port fetches this one.
+    favicon = (f"/site/assets/{look['favicon_asset']}" if look.get("favicon_asset")
+               else f"/favicon.svg?v={updates.current_version()}")
     hint = ("Leave the join code blank to join as a {reviewer}.".format(
         reviewer=site["labels"]["reviewer"].lower()) if site["self_signup"]
             else "An administrator gives you a join code.")

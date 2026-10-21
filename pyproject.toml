@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "incipit"
-version = "0.1.1"
+version = "0.1.2"
 description = "Transcription, indexing and review workbench: scans in, reviewed records out"
 requires-python = ">=3.10"
 # Ranges here, exact versions in constraints.txt -- CI and the workstation install with

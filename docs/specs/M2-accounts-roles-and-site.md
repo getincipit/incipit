@@ -156,6 +156,14 @@ M0 journey still passes with the new roles.
 
 ## Deviations from the first draft of this spec
 
+- **The host's own browser needs no token** (added 2026-10-21 after the first install opened on the
+  login form instead of the wizard). While setup is waiting (no owner, token file present), a request
+  to `/` or `/login` from loopback, asked for by a local name and not relayed by the tunnel (which also
+  arrives from loopback, under its public hostname and with Cloudflare's headers), goes to `/setup`,
+  and `/setup` hands that browser the token from disk, which only this computer can read. Every other
+  visitor still gets 404 at `/setup` and the login form elsewhere; the token remains the only key.
+
+
 - **Animations are animated SVG only, not Lottie.** Playing Lottie JSON needs a player library in
   the page, and bundling one means vendoring third-party code, which is the user's call. An SVG's
   own CSS and SMIL motion play inside an `<img>`, where nothing in it can run a script. Adding

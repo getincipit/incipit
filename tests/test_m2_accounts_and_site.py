@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from PIL import Image
 from starlette.requests import Request
 
@@ -657,4 +658,65 @@ def test_a_browser_asking_for_favicon_ico_is_sent_to_the_sites_mark(site):
     """Every page links the site's favicon; the bare /favicon.ico an old browser asks for goes there too."""
     app, _ = site
     answer = signed_in(app, None).get("/favicon.ico", follow_redirects=False)
-    assert (answer.status_code, answer.headers["location"]) == (302, "/favicon.svg")
+    assert (answer.status_code, answer.headers["location"].split("?")[0]) == (302, "/favicon.svg")
+
+
+# ---------- the host's own browser reaches setup without typing the token ----------
+# Regression (user report 2026-10-21): a fresh install opened http://localhost:8010/login instead of
+# the setup wizard, because the browser carried no token and the root went to the login form.
+
+
+def _browser(app, hostname, client, headers=None):
+    """An anonymous browser at the given address; the autouse fixture's admin cookie is cleared first."""
+    browser = TestClient(app, base_url=f"http://{hostname}", client=(client, 50000), headers=headers or {},
+                         follow_redirects=False)
+    browser.cookies.clear()
+    return browser
+
+
+def _host_browser(app, hostname="localhost", headers=None):
+    return _browser(app, hostname, "127.0.0.1", headers)
+
+
+def test_at_the_host_the_root_of_an_unowned_site_goes_to_setup(unowned):
+    app, _, token = unowned
+    first = _host_browser(app).get("/")
+    assert first.status_code == 303 and first.headers["location"] == "/setup"
+    second = _host_browser(app).get("/setup")
+    assert second.status_code == 303 and second.headers["location"] == f"/setup?token={token}"
+
+
+def test_at_the_host_the_login_page_of_an_unowned_site_goes_to_setup(unowned):
+    app, _, _ = unowned
+    assert _host_browser(app).get("/login").headers.get("location") == "/setup"
+
+
+def test_from_another_computer_an_unowned_site_still_tells_nothing(unowned):
+    app, _, _ = unowned
+    away = _browser(app, "incipit.local", "192.168.1.30")
+    assert away.get("/").headers["location"].startswith("/login") and away.get("/setup").status_code == 404
+
+
+def test_through_the_tunnel_an_unowned_site_still_tells_nothing(unowned):
+    app, _, _ = unowned
+    relayed = _host_browser(app, "x.trycloudflare.com", {"cf-connecting-ip": "203.0.113.9"})
+    assert relayed.get("/").headers["location"].startswith("/login") and relayed.get("/setup").status_code == 404
+    by_name = _host_browser(app, "x.trycloudflare.com")
+    assert by_name.get("/setup").status_code == 404
+
+
+def test_once_an_owner_exists_the_host_is_treated_like_anyone(tmp_path):
+    app, _ = make_app(tmp_path, admins=("paul",), reviewers=())
+    assert _host_browser(app).get("/").headers["location"].startswith("/login")
+
+
+# Regression (user report 2026-10-21): at localhost:8010 the browser kept another program's cached
+# favicon, since both answered /favicon.svg; the address now carries the version.
+
+
+def test_the_favicon_address_carries_the_version_so_another_sites_cache_is_not_reused(tmp_path):
+    from incipit import updates
+    app, _ = make_app(tmp_path, admins=("paul",), reviewers=())
+    page = signed_in(app, None).get("/login").text
+    assert f'favicon.svg?v={updates.current_version()}' in page
+    assert signed_in(app, None).get("/favicon.ico", follow_redirects=False).headers["location"].endswith(f"?v={updates.current_version()}")

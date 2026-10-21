@@ -7,6 +7,7 @@ import time
 from collections import defaultdict, deque
 from urllib.parse import urlsplit
 
+from fastapi import Request
 from fastapi.responses import Response
 
 
@@ -74,3 +75,13 @@ def add_browser_headers(response: Response) -> Response:
             "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
         )
     return response
+
+
+def at_the_host(request: Request) -> bool:
+    """Whether the request comes from a browser on the host computer itself, where the person installing
+    the site sits: loopback, asked for by a local name, and not relayed by the tunnel (which also arrives
+    from loopback, but under its public hostname and with Cloudflare's headers)."""
+    client = request.client.host if request.client else ""
+    hostname = request.headers.get("host", "").split(":")[0].lower()
+    return (client in ("127.0.0.1", "::1") and hostname in ("localhost", "127.0.0.1", "[::1]")
+            and "cf-connecting-ip" not in request.headers and "cf-ray" not in request.headers)

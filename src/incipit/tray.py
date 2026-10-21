@@ -225,6 +225,18 @@ def share_link(config: dict) -> str:
     return host.link(addresses[0] if addresses else "localhost", config["server"]["port"])
 
 
+def pystray_menu(items: list[tuple[str, object, bool]]):
+    """The tray's menu from (label, action, enabled) entries; a None action is a heading."""
+    import pystray
+
+    def run(act):
+        # pystray accepts an action of two parameters (icon, item) at most; a default argument counts.
+        return lambda _icon, _item: act()
+
+    return pystray.Menu(*[pystray.MenuItem(label, run(act) if act else None, enabled=enabled)
+                          for label, act, enabled in items])
+
+
 def menu_items(site: Site, config: dict, actions: dict) -> list[tuple[str, object, bool]]:
     """(label, action, enabled) for each entry, in order; the tray turns these into its menu."""
     local = host.link("localhost", config["server"]["port"])
@@ -307,30 +319,34 @@ def main(folder_argument: str | None = None, quiet: bool = False) -> int:
         items = menu_items(site, config, actions)
         # Before Quit, which stays last.
         items[-1:-1] = update_entries(updates.state(), actions)
-        return pystray.Menu(*[pystray.MenuItem(label, (lambda _icon, _item, act=act: act()) if act else None,
-                                               enabled=enabled)
-                              for label, act, enabled in items])
+        return pystray_menu(items)
 
     def tell_if(message: str) -> None:
         if message:
             tell(message)
 
-    tray = pystray.Icon("incipit", image, f"Incipit — {share_link(config)}")
-    tray.menu = pystray.Menu(lambda: build_menu(tray).items)
-    stopping["tray"] = tray
+    # If the tray cannot come up, the site it started must not be left running headless: the next
+    # start would find the port taken and nobody would have a Quit (user report 2026-10-21).
+    try:
+        tray = pystray.Icon("incipit", image, f"Incipit — {share_link(config)}")
+        tray.menu = pystray.Menu(lambda: build_menu(tray).items)
+        stopping["tray"] = tray
 
-    def watch_backups():
-        """Says so once when backups fail or go stale, and again only if the reason changes."""
-        told = ""
-        while True:
-            warning = backup_warning(backup_status(site.folder, config)) if site.running else ""
-            if warning and warning != told:
-                try:
-                    tray.notify(warning, "Incipit backups")
-                except Exception:  # noqa: BLE001 - a notification must never stop the tray
-                    pass
-            told = warning
-            time.sleep(600)
-    threading.Thread(target=watch_backups, name="incipit-backup-watch", daemon=True).start()
-    tray.run()
+        def watch_backups():
+            """Says so once when backups fail or go stale, and again only if the reason changes."""
+            told = ""
+            while True:
+                warning = backup_warning(backup_status(site.folder, config)) if site.running else ""
+                if warning and warning != told:
+                    try:
+                        tray.notify(warning, "Incipit backups")
+                    except Exception:  # noqa: BLE001 - a notification must never stop the tray
+                        pass
+                told = warning
+                time.sleep(600)
+        threading.Thread(target=watch_backups, name="incipit-backup-watch", daemon=True).start()
+        tray.run()
+    except BaseException:
+        site.stop()
+        raise
     return 0

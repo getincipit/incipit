@@ -8,7 +8,7 @@ from html import escape as escape_html
 from fastapi import Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
-from . import accounts, appearance, db, site_assets, site_settings, tunnel
+from . import accounts, appearance, db, security, site_assets, site_settings, tunnel, updates
 from .assets import APP_STATIC_DIR
 from .storage import BucketStorage
 
@@ -51,7 +51,8 @@ def install(app, settings) -> None:
         """A browser that asks by this name gets the site's own mark, as every page's <link> does."""
         with db.connect(settings.db_path) as conn:
             look = site_settings.settings(conn)["appearance"]
-        target = f"/site/assets/{look['favicon_asset']}" if look.get("favicon_asset") else "/favicon.svg"
+        target = (f"/site/assets/{look['favicon_asset']}" if look.get("favicon_asset")
+                  else f"/favicon.svg?v={updates.current_version()}")
         return RedirectResponse(target, status_code=302)
 
     @app.get("/site/assets/{asset_id}")
@@ -79,7 +80,7 @@ def install(app, settings) -> None:
         fill = {"{{PRODUCT}}": escape_html(site["product_name"], quote=True),
                 "{{LOGO}}": f"/site/assets/{look['logo_asset']}" if look.get("logo_asset") else "logo.svg",
                 "{{FAVICON}}": f"/site/assets/{look['favicon_asset']}" if look.get("favicon_asset")
-                else "favicon.svg",
+                else f"favicon.svg?v={updates.current_version()}",
                 "{{SITE_JSON}}": payload}
         html = (APP_STATIC_DIR / name).read_text(encoding="utf-8")
         for key, value in fill.items():
@@ -185,7 +186,11 @@ def install(app, settings) -> None:
         with db.connect(settings.db_path) as conn:
             has_owner = accounts.owner_exists(conn)
         if not has_owner:
-            # Nothing to say to someone without the token, not even that setup is waiting.
+            # The host's own browser carries no token; it is handed the one on disk, which only this
+            # computer can read. Anyone else without it learns nothing, not even that setup is waiting.
+            if not token and security.at_the_host(request) and site_settings.bootstrap_path(settings.db_path).is_file():
+                saved = site_settings.bootstrap_path(settings.db_path).read_text(encoding="utf-8").strip()
+                return RedirectResponse(f"/setup?token={saved}", status_code=303)
             if not site_settings.bootstrap_token_matches(settings.db_path, token):
                 return _error(404, "Not Found")
             return _page("setup.html")

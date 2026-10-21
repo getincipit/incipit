@@ -1282,3 +1282,18 @@ def test_a_missing_folder_is_said_to_the_person_at_the_host(tmp_path, monkeypatc
     told = []
     monkeypatch.setattr(tray, "tell", told.append)
     assert tray.main(None) == 2 and "Unplugged" in told[0]
+
+
+def test_the_trays_menu_builds_with_the_real_pystray(monkeypatch):
+    """Regression (user report 2026-10-21): pystray refused the menu's actions (a lambda with a default
+    argument counts as three parameters) and the tray crashed on its first start."""
+    pytest.importorskip("pystray")
+    monkeypatch.setattr(host, "lan_addresses", lambda: [])
+    items, calls = _menu(running=True)
+    items[-1:-1] = tray.update_entries({"state": "available", "release": {"version": "9.9.9"}},
+                                       {"check": lambda: calls.append("check"), "install": lambda: calls.append("install")})
+    menu = tray.pystray_menu(items)
+    entries = [e for e in menu.items if e.text != "Quit" and e._action is not None]
+    for entry in entries:
+        entry(None)
+    assert len(list(menu.items)) == len(items) and "install" in calls and "backup" in calls

@@ -163,6 +163,7 @@ openrouter_api_key = "" # moved into the database, encrypted, at start (M5); ent
 | The tunnel's address changes (every start) | the new address on Access and in the tray | records the new one | shares the new address (until the stable link exists) |
 | More than 200 requests at once through the tunnel | some requests fail with 429 | nothing | fewer people at once, or direct access |
 | The site is killed outright (the tray's Stop, a crash) | nothing | Windows ends cloudflared with it; a leftover from an earlier run is ended at the next start | nothing |
+| The tray itself fails while starting (a bad menu, a missing library) | the error, in the terminal or tray.log | stops the site it had started, so the port is not left held by a headless server | reinstalls or reports it |
 | cloudflared is missing from the install | "The tunnel program is missing; reinstall Incipit" | opens no tunnel | reinstalls |
 | Telegraph is unreachable or refuses | "The page could not be updated" with Telegraph's reason | tries again at the next address | shares the tunnel address directly meanwhile |
 | Public DNS is slow to learn a new address | "Waiting for the new address to be known on the internet…" | asks every 3 s for 3 minutes, then keeps the last address on the page | waits; the next start tries again |
@@ -316,3 +317,9 @@ file; a reviewer is refused `/api/access`; generate the icon set into a temp dir
 ## Status
 
 Complete.
+- **Regression, 2026-10-21 (user report from the first install of v0.1.0):** the tray crashed at start,
+  before any click, because the menu's actions were lambdas with a defaulted third parameter and
+  pystray 0.19.5 allows two at most; the site it had spawned kept running headless on port 8010 and the
+  setup wizard, which the tray opens, never appeared. The menu is now built by `tray.pystray_menu`
+  from two-parameter closures (tested against the real pystray), a tray that fails to start stops its
+  site, and the host's own browser reaches `/setup` without the token (see M2). Fixed in v0.1.2.
