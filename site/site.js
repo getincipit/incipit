@@ -34,6 +34,52 @@
     show(steps[0].dataset.screen);
   }
 
+  // The hero: the desk is designed at 1200 by 720 (--design) and scaled to its box; the documents settle into the
+  // window, then the letter is typed out, as a draft arrives in the program.
+  const desk = document.getElementById("desk");
+  const LETTER = [
+    "Mina darling\u2014",
+    "Thank you for your lovely letters and the invitations. I know they are real, that you really want me to come.",
+    "I am much better now. I am going to Battle Creek Sunday. Lewis goes with me. I'll stay a couple of weeks. My doctor wants me to come.",
+  ].join("\n\n");
+  function fitDesk() {
+    if (!desk) return;
+    const wrap = desk.parentElement;
+    const design = parseFloat(getComputedStyle(wrap).getPropertyValue("--design")) || 1200;
+    desk.style.setProperty("--scale", String(wrap.getBoundingClientRect().width / design));
+  }
+  function typeLetter(instant) {
+    const out = document.getElementById("draft-text");
+    if (!out) return;
+    if (instant) { out.textContent = LETTER; out.classList.add("done"); desk.classList.add("landed", "settled"); return; }
+    let i = 0;
+    const tick = () => {
+      i += 1;
+      out.textContent = LETTER.slice(0, i);
+      if (i < LETTER.length) setTimeout(tick, LETTER[i - 1] === "\n" ? 200 : 18);
+      else { out.classList.add("done"); desk.classList.add("settled"); }
+    };
+    tick();
+  }
+  if (desk) {
+    fitDesk();
+    window.addEventListener("resize", fitDesk);
+    if (still) typeLetter(true);
+    else {
+      desk.classList.add("play");
+      setTimeout(() => desk.classList.add("landed"), 4000);
+      setTimeout(() => typeLetter(false), 4200);
+    }
+  }
+
+  // The documents' credits, from the file the fetch script writes.
+  fetch("documents/credits.json").then((r) => r.json()).then((credits) => {
+    const el = document.querySelector("[data-credits]");
+    if (!el) return;
+    const esc = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    el.innerHTML = credits.map((c) => `<a href="${esc(c.link)}" title="${esc(c.title)}">${esc(c.kind)}, ${esc(c.date)}</a>`).join(" · ");
+  }).catch(() => {});
+
   // The estimator answers as its numbers change.
   const form = document.getElementById("estimator");
   const hours = (h) => (h >= 100 ? `${Math.round(h).toLocaleString()} hours` : `${h.toFixed(h >= 10 ? 0 : 1)} hours`);

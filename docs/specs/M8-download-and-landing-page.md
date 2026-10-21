@@ -20,8 +20,11 @@ real program, an estimator of the time it saves, and the download.
   being confirmed, the Team tab, the prompt builder, Models, Usage, Backups, Access and the setup
   wizard, each in light and dark. Re-running it regenerates them, so the page cannot drift from
   the product.
-- **Sections.** Hero (the pen as the I, one sentence, the download button, the review screen rising
-  into place) · From scans to a finished folder (the screens follow the copy as it scrolls: upload,
+- **Sections.** Hero (the headline, the download button, the Windows line in monospace, then the
+  stage: six real documents from the Thomas A. Edison Papers' public edition, fetched by
+  `scripts/fetch_documents.py` and credited under the stage, lie scattered on a table, settle one by
+  one into a stylised Incipit window, and the handwritten letter among them is typed out as a draft
+  with its fields filled) · From scans to a finished folder (the screens follow the copy as it scrolls: upload,
   split, draft, review, export) · Review instead of transcribe · A prompt that knows your period ·
   Your team · On your own computer (one install, the data in a folder you choose, backups, reaching
   it from outside, updates) · Time, end to end (the estimator) · The name · Download (requirements,
@@ -48,7 +51,7 @@ translations.
 
 - AC-1: `site/index.html` has the hero with the logo, a one-sentence description and a download button, and sections for the workflow, reviewing, the prompt, the team, running on your own computer, the estimator, the name and the download.
 - AC-2: The name section says where "Incipit" comes from: Latin for "here begins", the opening words by which a text was known and catalogued before titles were usual.
-- AC-3: Every screenshot the page shows exists in light and dark, was captured from the real program by `scripts/capture_screens.py`, and is referenced through `<picture>` so the reader's theme picks it.
+- AC-3: The page is dark by design; every screenshot it shows is a dark capture from the real program by `scripts/capture_screens.py` (light captures are made too, for the README and other uses), and every document in the hero is a real page from a public-domain edition, fetched by `scripts/fetch_documents.py`, which refuses anything not published under CC0, and credited on the page with a link to its edition page.
 - AC-4: The estimator keeps people time, machine time and model cost apart, never sums people and machine time into one figure, labels every default as an assumption, and computes them as its formulas say (node-tested).
 - AC-5: The download button leads to the newest GitHub release; the page shows the newest version, date and notes from GitHub's API and falls back to the releases page when the API cannot be reached.
 - AC-6: The page loads no script, style or font from another site, uses no analytics, and every local file it references exists.
@@ -70,5 +73,61 @@ translations.
 
 Serve `site/` from a local server and open it in Playwright at 375 px and 1440 px, light and dark:
 no horizontal overflow, no console errors, every image loads, the download link points at the newest
-release, the estimator answers when its inputs change, the name section is there, and with reduced
-motion every section is visible without scrolling into it.
+release, the estimator answers when its inputs change, the name section is there, the hero ends
+with the six documents in the queue and the letter transcribed, and with reduced motion every
+section is visible without scrolling into it and the hero is already at rest.
+
+## Results (2026-10-21)
+
+- Suite: 2,212 passed (`-p no:randomly -n auto`); residue and spec-coverage tests included.
+- `scripts/smoke_m8.py`: 18 checks passed (375 px and 1440 px, light and dark, reduced motion).
+- Looked at by hand in Chromium at 1440 px and 375 px: the pile, the settle, the finished draft; no
+  horizontal overflow, no console errors. The published page is at
+  `https://parthaped.github.io/incipit/`.
+- Found along the way: the steps section already owned the class `.stage`, so the hero's became
+  `.desk`; the smoke's overflow check caught it.
+
+## Decisions made while building it
+
+- **Dark by design, in Raycast's direction** (user direction 2026-10-21: the page must read as a
+  made thing, not a generic AI product page). The identity is an archivist's: paper-cream type on
+  an ink-dark table, a serif display face, monospace for the small facts (the Windows line, the
+  step numbers, the measured figures), and the pen. No gradients, no glass, no stock art.
+- **The hero shows real documents, not invented or generated ones** (user direction 2026-10-21:
+  "use real documents from the edison papers … a collage of various documents, and animate them being
+  put into the platform and cleanly transcribed", and "use letter document too"). The first design
+  drew an invented letter under a lamp; it was replaced because a made-up page says less than a
+  real one. The six pages (two handwritten letters, a notebook sketch, a notebook page of accounts,
+  typed minutes, a typed report) come from the Thomas A. Edison Papers' digital edition, whose
+  manifests publish them under CC0 1.0; `scripts/fetch_documents.py` checks that before saving
+  anything and writes `site/documents/credits.json`, from which the page prints the credit line with
+  a link to each edition page. The residue test, which otherwise bans the original project's name,
+  allows exactly these files for this reason. The letter's transcription in the animation was made
+  by hand from the scan; none of this installation's drafted text is used.
+- **The stage is designed at fixed units and scaled.** 1200 by 720 units (760 on a phone, framing
+  the window alone), scaled to its box by one custom property, so every position in the animation
+  is a plain number and the same keyframes serve every width. Motion is transforms and opacity only;
+  with reduced motion the stage is drawn at rest, transcribed.
+- **Screenshots come from the real program**, run against a fake model with invented material, and
+  every one is checked before it is saved for anything that would name this computer (addresses,
+  hostname, paths, user name); the capture refuses to save otherwise. The Settings screens are the
+  panel alone, since the dimmed site behind the window only blurred the picture.
+- **The download comes first.** The page's first screen is the download, as on every reference
+  page looked at (Claude, Linear, Raycast); the explanation follows for those who want it.
+- **GitHub Pages from the `gh-pages` branch.** The first plan was an Actions workflow, which the
+  publishing token could not create (no `workflow` scope); a branch the publish script force-pushes
+  needs nothing but push access and has one fewer moving part.
+- **No analytics and nothing loaded from elsewhere**, so the page tells no one who visited and
+  works offline once loaded, except for the release lookup, which fails quietly.
+
+## Redundancy review
+
+- One owner per picture: the screenshots are made only by `scripts/capture_screens.py`, the hero's
+  documents fetched only by `scripts/fetch_documents.py` (which also writes their credits, the one
+  place the page reads them from), the shared drawings copied only by `scripts/build_site.py` (which
+  the publish script calls); the residue test allows no other binary in the repository.
+- One source per fact: the newest version, date, size and notes come from GitHub's release API at
+  read time; the page hard-codes none of them.
+- The estimator's formulas live once, in `estimator.js`, used by the page and tested by node.
+- Found and fixed along the way: the Team tab had left a split being confirmed drawn beneath it
+  (`workspace.js`, with a regression test).

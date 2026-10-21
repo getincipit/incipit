@@ -34,9 +34,23 @@ def _estimate(inputs: dict) -> dict:
 # ---------- AC-1: the page's parts ----------
 
 
-def test_ac1_the_hero_has_the_app_icon_the_headline_and_the_download():
+def test_ac1_the_hero_has_the_headline_the_download_and_the_desk():
     hero = PAGE[PAGE.index('<section class="hero">'):PAGE.index("</section>")]
-    assert 'class="app-icon' in hero and "Download Incipit" in hero and "Download for Windows" in hero
+    assert "Here begins<br>the transcription." in hero and "Download for Windows" in hero and 'id="desk"' in hero
+
+
+def test_ac1_the_desk_shows_every_fetched_document_and_credits_them():
+    credits = json.loads((SITE / "documents" / "credits.json").read_text(encoding="utf-8"))
+    keys = {c["key"] for c in credits}
+    assert keys == set(re.findall(r'data-doc="([a-z0-9-]+)"', PAGE)) and len(keys) == 6
+    assert all((SITE / "documents" / f"{k}.webp").is_file() for k in keys)
+    assert all(c["license"] == "CC0 1.0" and c["link"].startswith("https://edisondigital.rutgers.edu/") for c in credits)
+    assert "published under CC0" in PAGE and 'data-credits' in PAGE and "documents/credits.json" in SCRIPT
+
+
+def test_ac1_the_fetch_script_refuses_a_document_that_is_not_cc0():
+    script = (ROOT / "scripts" / "fetch_documents.py").read_text(encoding="utf-8")
+    assert 'if "CC0" not in' in script and "raise SystemExit" in script
 
 
 @pytest.mark.parametrize("section", ['id="start"', 'id="how"', "Review instead of transcribe", "A prompt that knows your period",
@@ -60,16 +74,13 @@ def _referenced() -> set[str]:
     return set(re.findall(r"screens/([a-z-]+)-(?:light|dark)\.webp", PAGE + CSS))
 
 
-def test_ac3_every_screenshot_exists_in_light_and_dark():
-    missing = [f"{name}-{theme}.webp" for name in _referenced() for theme in ("light", "dark")
-               if not (SITE / "screens" / f"{name}-{theme}.webp").is_file()]
+def test_ac3_every_screenshot_the_page_shows_exists():
+    missing = [f"{name}-dark.webp" for name in _referenced() if not (SITE / "screens" / f"{name}-dark.webp").is_file()]
     assert _referenced() and missing == []
 
 
-def test_ac3_the_reader_s_theme_picks_the_screenshot():
-    pictures = re.findall(r"<picture[^>]*>(.*?)</picture>", PAGE, re.S)
-    assert pictures and all('media="(prefers-color-scheme: dark)"' in p and "-dark.webp" in p and "-light.webp" in p
-                            for p in pictures)
+def test_ac3_the_page_is_dark_and_shows_the_dark_captures():
+    assert "color-scheme: dark" in CSS and "-light.webp" not in PAGE and "-light.webp" not in CSS
 
 
 def test_ac3_every_screenshot_shown_is_one_the_capture_script_makes():
@@ -156,9 +167,22 @@ def test_ac7_reduced_motion_shows_everything_at_rest():
     assert ".js .reveal" in calm and "opacity: 1" in calm and "animation: none" in calm
 
 
+def _keyframe_bodies() -> list[str]:
+    bodies = []
+    for match in re.finditer(r"@keyframes [a-z-]+ \{", CSS):
+        depth, start = 1, match.end()
+        for i in range(start, len(CSS)):
+            depth += {"{": 1, "}": -1}.get(CSS[i], 0)
+            if depth == 0:
+                bodies.append(CSS[start:i])
+                break
+    return bodies
+
+
 def test_ac7_motion_uses_only_transforms_and_opacity():
-    animated = re.findall(r"transition:\s*([^;]+);", CSS) + re.findall(r"@keyframes [a-z-]+ \{([^}]*\})", CSS)
-    properties = {m.split()[0] for t in animated for m in t.split(",") if m.strip() and not m.strip().startswith("to")}
+    properties = {part.split()[0] for t in re.findall(r"transition:\s*([^;]+);", CSS) for part in t.split(",") if part.strip()}
+    for body in _keyframe_bodies():
+        properties |= set(re.findall(r"([a-z-]+)\s*:", body))
     assert properties <= {"opacity", "transform", "background", "box-shadow", "border-color", "none"}
 
 

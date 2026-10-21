@@ -68,12 +68,21 @@ def main() -> int:
                               f"{before} -> {after}")
                     checks.ok("4 the name section says where the name comes from",
                               "here begins" in page.inner_text("#name"))
+                    # The hero: six real documents settle into the window and the letter is typed out.
+                    page.wait_for_selector(".desk.settled", timeout=20000)
+                    checks.ok("6 the hero ends with the letter transcribed and the documents in the queue",
+                              page.inner_text("#draft-text").startswith("Mina darling")
+                              and page.eval_on_selector_all(".doc", "els => els.length") == 6
+                              and page.eval_on_selector_all("[data-credits] a", "els => els.length") == 6)
                 context.close()
         context = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
         page = context.new_page()
         page.goto(url, wait_until="networkidle")
         hidden = page.evaluate("[...document.querySelectorAll('.reveal, .rise, .rise-late')].filter((el) => getComputedStyle(el).opacity !== '1').length")
         checks.ok("5 with reduced motion every section shows without scrolling", hidden == 0, f"{hidden} hidden")
+        checks.ok("5 with reduced motion the hero is already at rest, transcribed",
+                  page.evaluate("document.querySelector('.desk').classList.contains('settled')")
+                  and page.inner_text("#draft-text").startswith("Mina darling"))
         context.close()
         browser.close()
     server.shutdown()
