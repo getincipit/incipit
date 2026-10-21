@@ -329,3 +329,9 @@ Complete.
   on a retry. The installer now checks both folders (`ProtectedPlace`, `Writable`) at Next and again in
   `PrepareToInstall` for silent runs, and explains what to choose; `/ALLUSERS` is allowed for the
   program's folder. The guide gained "Choosing the data folder". Shipped in v0.1.3.
+- **The team's page carries the site's name** (user direction 2026-10-21: the link should read as
+  whatever the owner named the site, since the domain itself cannot be theirs without a domain they
+  own). The page is titled with the site's name alone, read afresh each time the site writes it, so a
+  renamed site renames its page and "Replace the link" issues the new page under the current name;
+  the tray, which knows no site name, keeps the title the page was made with. A link under the
+  organisation's own domain (a named Cloudflare tunnel) was discussed and held for later.

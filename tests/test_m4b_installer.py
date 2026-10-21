@@ -1319,3 +1319,43 @@ def test_the_installer_explains_program_files_for_the_program_too():
     script = (ROOT / "installer" / "incipit.iss").read_text(encoding="utf-8")
     assert "PrivilegesRequiredOverridesAllowed=commandline" in script
     assert "Problem := ProgramFolderProblem(WizardDirValue);" in script and "/ALLUSERS" in script
+
+
+# The team's page carries the site's own name (user direction 2026-10-21: the link should read as
+# whatever the owner named the site, not as the product).
+
+
+def test_the_teams_page_is_titled_with_the_sites_name_alone(tmp_path):
+    import dataclasses
+    from conftest import make_app
+    from incipit import access_routes, fixedlink
+    app, settings = make_app(tmp_path, admins=("paul",), reviewers=())
+    assert signed_in(app, "paul").put("/api/site/settings", json={"product_name": "Harbour Street Archive"}).status_code == 200
+    settings = dataclasses.replace(settings, tunnel_dir=str(tmp_path / "tunnel"))
+    access_routes._links.pop(settings.tunnel_dir, None)
+    link = access_routes.team_link(settings)
+    assert isinstance(link, fixedlink.FixedLink) and link.title == "Harbour Street Archive"
+    signed_in(app, "paul").put("/api/site/settings", json={"product_name": "Harbour Street Papers"})
+    assert access_routes.team_link(settings).title == "Harbour Street Papers"
+
+
+def test_renaming_the_site_renames_its_page_at_the_next_write(tmp_path):
+    from incipit import fixedlink
+    telegraph = FakeTelegraph()
+    first = fixedlink.FixedLink(tmp_path / "tunnel", title="Harbour Street Archive", post=telegraph, get=_dns(0), sleep=lambda s: None)
+    first.announce(ADDRESS_ONE)
+    renamed = fixedlink.FixedLink(tmp_path / "tunnel", title="Harbour Street Papers", post=telegraph, get=_dns(0), sleep=lambda s: None)
+    renamed.announce(ADDRESS_TWO)
+    assert telegraph.calls[-1][1]["title"] == "Harbour Street Papers"
+
+
+def test_a_replaced_link_takes_the_sites_current_name(tmp_path):
+    from incipit import fixedlink
+    telegraph = FakeTelegraph()
+    old = fixedlink.FixedLink(tmp_path / "tunnel", title="Old Name", post=telegraph, get=_dns(0), sleep=lambda s: None)
+    old.announce(ADDRESS_ONE)
+    new = fixedlink.FixedLink(tmp_path / "tunnel", title="New Name", post=telegraph, get=_dns(0), sleep=lambda s: None)
+    new.replace()
+    new.announce(ADDRESS_TWO)
+    created = [c for c in telegraph.calls if c[0] == "createPage"]
+    assert created[-1][1]["title"] == "New Name"

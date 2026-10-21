@@ -107,15 +107,20 @@ def reach_outside(settings, wait: float = ROUTER_WAIT_SECONDS) -> None:
 _links: dict[str, fixedlink.FixedLink] = {}
 
 
+def site_title(settings) -> str:
+    """The site's name as the owner set it, which the team's page is titled after."""
+    try:
+        with db.connect(settings.db_path) as conn:
+            return site_settings.public(conn)["product_name"] or "Incipit"
+    except Exception:  # noqa: BLE001 - a missing name must not stop the link
+        return "Incipit"
+
+
 def team_link(settings) -> fixedlink.FixedLink:
-    """The site's fixed link, one per tunnel folder, titled with the site's name."""
+    """The site's fixed link, one per tunnel folder; the name is read afresh, so a renamed site renames its page."""
     if settings.tunnel_dir not in _links:
-        try:
-            with db.connect(settings.db_path) as conn:
-                title = site_settings.public(conn)["product_name"] or "Incipit"
-        except Exception:  # noqa: BLE001 - a missing name must not stop the link
-            title = "Incipit"
-        _links[settings.tunnel_dir] = fixedlink.FixedLink(settings.tunnel_dir, title=f"{title} sign-in")
+        _links[settings.tunnel_dir] = fixedlink.FixedLink(settings.tunnel_dir)
+    _links[settings.tunnel_dir].title = site_title(settings)
     return _links[settings.tunnel_dir]
 
 

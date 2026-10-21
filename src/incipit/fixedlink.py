@@ -70,8 +70,9 @@ def resolves(address: str, get=requests.get) -> bool:
 class FixedLink:
     """The team's permanent page: made on first use, then rewritten whenever the address changes."""
 
-    def __init__(self, state_dir: str | Path, title: str = "Incipit", post=None, get=None, sleep=time.sleep):
+    def __init__(self, state_dir: str | Path, title: str | None = None, post=None, get=None, sleep=time.sleep):
         self.state_path = Path(state_dir) / STATE_NAME
+        # The site's name, which the page is titled after; None (the tray) keeps whatever it was made with.
         self.title = title
         # Looked up at each call when not given, so a test can stand in for the network.
         self._post = post or (lambda *a, **k: requests.post(*a, **k))
@@ -102,8 +103,9 @@ class FixedLink:
         saved = self._load()
         when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         content = page_content(link, running=running, when=when)
-        # The title the page was made with, so the tray (which knows no site name) keeps it.
-        title = saved.get("title") or self.title
+        # The site names the page after itself, so a renamed site renames its link; the tray, which
+        # knows no site name, keeps the title the page was made with.
+        title = self.title or saved.get("title") or "Incipit"
         if not saved.get("access_token"):
             account = _call(self._post, "createAccount", short_name="Incipit", author_name=title[:128])
             saved = {"access_token": account["access_token"], "title": title}
@@ -163,11 +165,12 @@ class FixedLink:
             if saved.get("path"):
                 try:
                     _call(self._post, "editPage", access_token=saved["access_token"], path=saved["path"],
-                          title=self.title, content=json.dumps([{"tag": "p", "children": [
+                          title=self.title or saved.get("title") or "Incipit", content=json.dumps([{"tag": "p", "children": [
                               "This link no longer works. Ask the site's owner for the new one."]}]))
                 except LinkError as exc:
                     logger.warning("the old link could not be retired: %s", exc)
-            kept = {key: saved[key] for key in ("access_token", "title") if saved.get(key)}
+            # Only the account is kept: the next page takes the site's name as it is now.
+            kept = {key: saved[key] for key in ("access_token",) if saved.get(key)}
             self._save(kept)
 
     def status(self) -> dict:
