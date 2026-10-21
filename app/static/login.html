@@ -60,8 +60,9 @@
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) .backdrop { background:radial-gradient(60% 22% at 70% 80%, rgba(255, 255, 255, .04), transparent 70%); }
     }
-    :root[data-theme="dark"] .mark { filter:invert(1); }
-    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mark { filter:invert(1); } }
+    /* Only the stock mark is black ink to invert; a logo the owner uploaded keeps its own colours. */
+    :root[data-theme="dark"] .mark.stock { filter:invert(1); }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mark.stock { filter:invert(1); } }
     :root[data-theme="dark"] .tabs button.active { background:var(--card-line); }
     @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabs button.active { background:var(--card-line); } }
     :root[data-theme="dark"] .handling button { color:rgba(230, 230, 235, .6); background:rgba(230, 230, 235, .08); }
@@ -87,6 +88,9 @@
     .footer { margin:22px 0 0; font-size:12px; color:var(--muted); }
     .footer:empty { display:none; }
     .panel { z-index:1; }
+    /* With nothing to look at beside it (no backdrop, or a plain colour), the card takes the middle of the page. */
+    body[data-backdrop="none"] .panel, body[data-backdrop="colour"] .panel { width:100%; align-items:center; padding:24px 16px; }
+    body[data-backdrop="none"] .backdrop { background:none; }
     .eyebrow { margin:0 0 4px; font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
     h1 { margin:0 0 6px; font-size:24px; font-weight:650; letter-spacing:-.02em; }
     .sub { margin:0 0 24px; color:var(--muted); font-size:14px; }
@@ -130,13 +134,13 @@
     }
   </style>
 </head>
-<body>
+<body data-backdrop="{{BACKDROP}}">
   <div class="backdrop" aria-hidden="true"></div>
   <div id="site-backdrop" class="site-backdrop" aria-hidden="true"></div>
 
   <main class="panel">
     <div class="card">
-      <img class="mark" src="{{LOGO}}" alt="" />
+      <img class="mark {{MARK}}" src="{{LOGO}}" alt="" />
       <p class="eyebrow">{{PRODUCT}}</p>
       <h1>{{TAGLINE}}</h1>
       <p class="sub">{{WELCOME}}</p>

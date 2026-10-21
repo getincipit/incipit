@@ -2520,6 +2520,8 @@ button.pill-admin:focus-visible { outline: 2px solid var(--accent); outline-offs
 .preview-card { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); width: 58%;
   padding: 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border);
   box-shadow: var(--shadow-raised); font-size: 11px; }
+/* As on the sign-in page: with nothing beside it, the card takes the middle. */
+.preview-backdrop[data-kind="none"] + .preview-card, .preview-backdrop[data-kind="colour"] + .preview-card { left: 50%; transform: translate(-50%, -50%); }
 .preview-logo { height: 16px; max-width: 80px; object-fit: contain; display: block; margin-bottom: 6px; }
 .preview-eyebrow { font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
 .preview-title { font-size: 13px; font-weight: 650; margin: 2px 0; }

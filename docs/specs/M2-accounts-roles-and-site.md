@@ -156,6 +156,14 @@ M0 journey still passes with the new roles.
 
 ## Deviations from the first draft of this spec
 
+- **An owner's own SVG, and a card with nothing beside it** (user direction 2026-10-21). The SVG
+  sanitiser refused any file with a DOCTYPE, which every Illustrator export carries, and crashed on
+  one declaring ISO-8859-1; it now drops a plain DOCTYPE, still refuses one that defines entities,
+  and parses bytes so the file's own encoding is honoured. In dark mode only the stock mark is
+  inverted; an uploaded logo keeps its colours. The sign-in page carries the backdrop's kind on
+  `<body>`, and with `none` or `colour` the card sits in the middle of the page (the Settings preview
+  does the same) instead of on the left where a backdrop would be.
+
 - **The host's own browser needs no token** (added 2026-10-21 after the first install opened on the
   login form instead of the wizard). While setup is waiting (no owner, token file present), a request
   to `/` or `/login` from loopback, asked for by a local name and not relayed by the tunnel (which also

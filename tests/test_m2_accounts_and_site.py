@@ -720,3 +720,39 @@ def test_the_favicon_address_carries_the_version_so_another_sites_cache_is_not_r
     page = signed_in(app, None).get("/login").text
     assert f'favicon.svg?v={updates.current_version()}' in page
     assert signed_in(app, None).get("/favicon.ico", follow_redirects=False).headers["location"].endswith(f"?v={updates.current_version()}")
+
+
+# ---------- an owner's own SVG, and a card with nothing beside it ----------
+# Regression (user report 2026-10-21): a logo exported by Illustrator was refused for its harmless DOCTYPE,
+# one saved as ISO-8859-1 crashed the upload, and the sign-in card stayed on the left with no backdrop.
+
+
+def test_an_svg_with_a_plain_doctype_is_accepted_and_the_doctype_dropped():
+    clean, removed = site_assets.sanitize_svg(
+        b'<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
+        b'"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4">'
+        b'<style type="text/css">.a{fill:#123}</style><rect class="a" width="4" height="4"/></svg>')
+    assert b"DOCTYPE" not in clean and b'class="a"' in clean and removed == []
+
+
+def test_an_svg_in_another_encoding_is_read_by_its_own_declaration():
+    clean, _ = site_assets.sanitize_svg(
+        '<?xml version="1.0" encoding="ISO-8859-1"?><svg xmlns="http://www.w3.org/2000/svg"><title>Café</title></svg>'.encode("latin-1"))
+    assert "Café".encode("utf-8") in clean
+
+
+def test_an_svg_defining_entities_is_still_refused():
+    with pytest.raises(site_assets.AssetError):
+        site_assets.sanitize_svg(b'<!DOCTYPE svg [<!ENTITY x "y">]><svg xmlns="http://www.w3.org/2000/svg"><text>&x;</text></svg>')
+
+
+def test_the_sign_in_page_says_which_backdrop_it_has_and_marks_only_the_stock_logo(tmp_path):
+    app, _ = make_app(tmp_path, admins=("paul",), reviewers=())
+    page = signed_in(app, None).get("/login").text
+    assert 'class="mark stock"' in page and re.search(r'<body data-backdrop="[a-z]+">', page)
+    admin = signed_in(app, "paul")
+    logo = admin.post("/api/site/assets", data={"kind": "logo"},
+                      files={"file": ("own.svg", b'<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>', "image/svg+xml")}).json()
+    assert admin.put("/api/site/settings", json={"appearance": {"backdrop": {"kind": "none"}, "logo_asset": logo["id"]}}).status_code == 200
+    page = signed_in(app, None).get("/login").text
+    assert '<body data-backdrop="none">' in page and 'class="mark "' in page and f'/site/assets/{logo["id"]}' in page

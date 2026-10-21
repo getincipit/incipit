@@ -98,12 +98,16 @@ _FORBIDDEN_TAGS = {"script", "foreignObject", "iframe", "embed", "object", "hand
 
 def sanitize_svg(content: bytes) -> tuple[bytes, list[str]]:
     """The SVG without scripts, event handlers, foreign content or references off the page."""
-    text = content.decode("utf-8", errors="strict") if isinstance(content, bytes) else content
-    if re.search(r"<!DOCTYPE|<!ENTITY", text, re.I):
-        raise AssetError("SVG files with a DOCTYPE or entities are not accepted")
+    raw = content if isinstance(content, bytes) else content.encode("utf-8")
+    # Illustrator and old Inkscape files open with a plain DOCTYPE, which says nothing and is dropped;
+    # one with an internal subset can define entities, the way an SVG smuggles content in, so it is refused.
+    if re.search(rb"<!ENTITY|<!DOCTYPE[^>]*\[", raw, re.I):
+        raise AssetError("SVG files that define entities are not accepted")
+    raw = re.sub(rb"<!DOCTYPE[^>]*>", b"", raw, count=1, flags=re.I)
     try:
-        root = ET.fromstring(text)
-    except ET.ParseError as exc:
+        # Parsed as bytes, so the file's own encoding declaration (UTF-8, ISO-8859-1) is honoured.
+        root = ET.fromstring(raw)
+    except (ET.ParseError, ValueError) as exc:
         raise AssetError(f"that SVG could not be read ({exc})") from None
     if root.tag not in (f"{_SVG}svg", "svg"):
         raise AssetError("that file is not an SVG image")

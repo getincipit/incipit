@@ -658,6 +658,8 @@ def _login_html(site: dict, error: str = "", next: str = "/", tab: str = "login"
         "{{WELCOME}}": look.get("welcome") or "",
         "{{FOOTER}}": look.get("footer") or "",
         "{{LOGO}}": logo,
+        "{{MARK}}": "" if look.get("logo_asset") else "stock",
+        "{{BACKDROP}}": (look.get("backdrop") or {}).get("kind") or "none",
         "{{FAVICON}}": favicon,
         "{{SIGNUP_HINT}}": hint,
     }
