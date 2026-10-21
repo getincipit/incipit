@@ -1,0 +1,2 @@
+recursive-include app/static *.html *.js *.css *.svg
+recursive-include prompts *.md

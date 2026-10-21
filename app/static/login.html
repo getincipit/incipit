@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in — {{PRODUCT}}</title>
+  <link rel="icon" href="{{FAVICON}}" type="image/svg+xml" />
+  <link rel="stylesheet" href="/backdrop.css" />
+  <link rel="stylesheet" href="/site.css" />
+  <script>
+    /* The appearance chosen under the gear applies here too, before anything paints. */
+    (function () {
+      try {
+        var choice = localStorage.getItem("incipit-theme") || "light";
+        if (choice === "dark" || choice === "light") document.documentElement.setAttribute("data-theme", choice);
+      } catch (error) { document.documentElement.setAttribute("data-theme", "light"); }
+    })();
+  </script>
+  <style>
+    /* The same light world as the site itself: its colours, its controls, and the machines rendered in their own. */
+    /* Where the card's side ends and the machine's begins; it widens with the window so the card moves in from the edge. */
+    /* The card's room, and the line the machine, its label and the words all share, a little nearer the card than the middle. */
+    :root { --split:clamp(600px, 46vw, 820px); --stage-x:calc(var(--split) + (100vw - var(--split)) * 0.44); }
+    :root {
+      color-scheme: light;
+      --bg:#fbfbfd; --ink:#1d1d1f; --muted:#6e6e73; --faint:#a1a1a6;
+      --card:#ffffff; --card-line:#d2d2d7; --line-soft:#ebebef; --gray-bg:#f0f0f3;
+      --field:#ffffff; --field-line:#d2d2d7; --accent:#0071e3; --accent-hover:#0077ed; --accent-active:#006edb;
+      --on-accent:#ffffff;
+      --error-bg:#fdeced; --error-ink:#d70015; --error-line:#f5c6cb;
+      --shadow-raised:0 2px 6px rgba(0, 0, 0, .06), 0 12px 28px rgba(0, 0, 0, .08);
+      --ease:cubic-bezier(.25, .1, .25, 1);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg:#141416; --ink:#e6e6eb; --muted:#a3a3ad; --faint:#6e6e76;
+      --card:#1e1e21; --card-line:#3a3a41; --line-soft:#2a2a2f; --gray-bg:#2a2a2f;
+      --field:#161618; --field-line:#3a3a41; --accent:#4a9eff; --accent-hover:#62abff; --accent-active:#3d8ff2;
+      --on-accent:#111318;
+      --error-bg:rgba(255, 107, 107, .15); --error-ink:#ff8585; --error-line:rgba(255, 107, 107, .4);
+      --shadow-raised:0 2px 6px rgba(0, 0, 0, .4), 0 12px 28px rgba(0, 0, 0, .5);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+      color-scheme: dark;
+        --bg:#141416; --ink:#e6e6eb; --muted:#a3a3ad; --faint:#6e6e76;
+        --card:#1e1e21; --card-line:#3a3a41; --line-soft:#2a2a2f; --gray-bg:#2a2a2f;
+        --field:#161618; --field-line:#3a3a41; --accent:#4a9eff; --accent-hover:#62abff; --accent-active:#3d8ff2;
+        --on-accent:#111318;
+        --error-bg:rgba(255, 107, 107, .15); --error-ink:#ff8585; --error-line:rgba(255, 107, 107, .4);
+        --shadow-raised:0 2px 6px rgba(0, 0, 0, .4), 0 12px 28px rgba(0, 0, 0, .5);
+      }
+    }
+    /* In the dark the sweep is a deep grey settling to black, and the controls keep their contrast. */
+    :root[data-theme="dark"] body { background:linear-gradient(180deg, #19191c 0%, #151517 55%, #0f0f11 100%); }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) body { background:linear-gradient(180deg, #19191c 0%, #151517 55%, #0f0f11 100%); }
+    }
+    :root[data-theme="dark"] .backdrop { background:radial-gradient(60% 22% at 70% 80%, rgba(255, 255, 255, .04), transparent 70%); }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .backdrop { background:radial-gradient(60% 22% at 70% 80%, rgba(255, 255, 255, .04), transparent 70%); }
+    }
+    :root[data-theme="dark"] .mark { filter:invert(1); }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mark { filter:invert(1); } }
+    :root[data-theme="dark"] .tabs button.active { background:var(--card-line); }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabs button.active { background:var(--card-line); } }
+    :root[data-theme="dark"] .handling button { color:rgba(230, 230, 235, .6); background:rgba(230, 230, 235, .08); }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .handling button { color:rgba(230, 230, 235, .6); background:rgba(230, 230, 235, .08); } }
+    * { box-sizing: border-box; }
+    html, body { height:100%; }
+    body {
+      margin:0; min-height:100vh; overflow:hidden; background:var(--bg); color:var(--ink);
+      font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+    /* A studio sweep: paper-white above settling to a soft grey floor, with the floor darkening a little under the machine. */
+    body { background:linear-gradient(180deg, #fcfcfd 0%, #f7f7f9 55%, #ebebef 100%); }
+    .backdrop { position:fixed; inset:0; pointer-events:none;
+                background:radial-gradient(60% 22% at 70% 80%, rgba(0, 0, 0, .05), transparent 70%); }
+    /* The card sits on the left, where reading starts, a little in from the edge rather than against it. */
+    .panel { position:fixed; top:0; left:0; bottom:0; width:min(var(--split), 100%); display:flex;
+             flex-direction:column; align-items:flex-end; overflow-y:auto; padding:24px 56px 24px 40px; }
+    .card { width:100%; max-width:390px; flex-shrink:0; margin-block:auto; pointer-events:auto; padding:30px 32px 30px; border-radius:20px;
+            background:var(--card); border:1px solid var(--card-line); box-shadow:var(--shadow-raised); }
+    /* The one mark on the page, at the head of the card: the site's own logo. */
+    .mark { display:block; max-width:160px; height:34px; margin-bottom:16px; object-fit:contain; object-position:left; }
+    .footer { margin:22px 0 0; font-size:12px; color:var(--muted); }
+    .footer:empty { display:none; }
+    .panel { z-index:1; }
+    .eyebrow { margin:0 0 4px; font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+    h1 { margin:0 0 6px; font-size:24px; font-weight:650; letter-spacing:-.02em; }
+    .sub { margin:0 0 24px; color:var(--muted); font-size:14px; }
+    .tabs { display:flex; gap:4px; margin-bottom:22px; padding:4px; border-radius:11px; background:var(--gray-bg); }
+    .tabs button { flex:1; padding:8px; border:0; border-radius:8px; background:none; font:inherit;
+                   font-size:14px; font-weight:600; color:var(--muted); cursor:pointer;
+                   transition:background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease); }
+    .tabs button:hover { color:var(--ink); }
+    .tabs button.active { background:#fff; color:var(--accent); box-shadow:0 1px 2px rgba(0, 0, 0, .04), 0 4px 12px rgba(0, 0, 0, .04); }
+    .tabs button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+    label { display:block; margin:16px 0 6px; font-size:13px; font-weight:600; color:var(--ink); }
+    label .optional { font-weight:400; color:var(--muted); }
+    input { width:100%; height:44px; padding:0 13px; border:1px solid var(--field-line); border-radius:10px;
+            background:var(--field); color:var(--ink); font:inherit;
+            transition:border-color .18s var(--ease), box-shadow .18s var(--ease); }
+    input:hover { border-color:#b9b9c0; }
+    input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(0, 113, 227, .25); }
+    input:-webkit-autofill { -webkit-box-shadow:0 0 0 40px var(--field) inset; -webkit-text-fill-color:var(--ink); }
+    .hint { margin-top:6px; font-size:12px; color:var(--muted); }
+    button.go { width:100%; height:46px; margin-top:24px; border:0; border-radius:980px; background:var(--accent);
+                color:var(--on-accent); font:inherit; font-weight:600; letter-spacing:-.01em; cursor:pointer;
+                transition:background .18s var(--ease), transform .18s var(--ease), box-shadow .18s var(--ease); }
+    button.go:hover { background:var(--accent-hover); transform:translateY(-1px);
+                      box-shadow:0 8px 24px rgba(0, 113, 227, .3); }
+    button.go:active { background:var(--accent-active); transform:scale(.98); box-shadow:none; transition-duration:.06s; }
+    button.go:focus-visible { outline:3px solid rgba(0, 113, 227, .4); outline-offset:2px; }
+    .auth-error { margin-bottom:18px; padding:10px 12px; border-radius:10px; font-size:13px;
+                  background:var(--error-bg); color:var(--error-ink); border:1px solid var(--error-line); }
+    .hidden { display:none; }
+
+    /* Small screens keep the sign-in form uncluttered. */
+    @media (max-width: 860px) {
+      body { overflow:auto; }
+      .backdrop { background:none; }
+      .panel { position:relative; width:100%; min-height:100vh; padding:48px 16px 40px; align-items:center; }
+      .card { background:color-mix(in srgb, var(--card) 92%, transparent); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      button.go, .tabs button { transition-duration:.01ms; }
+      button.go:hover, button.go:active { transform:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <div id="site-backdrop" class="site-backdrop" aria-hidden="true"></div>
+
+  <main class="panel">
+    <div class="card">
+      <img class="mark" src="{{LOGO}}" alt="" />
+      <p class="eyebrow">{{PRODUCT}}</p>
+      <h1>{{TAGLINE}}</h1>
+      <p class="sub">{{WELCOME}}</p>
+
+      {{ERROR}}
+
+      <div class="tabs">
+        <button type="button" id="tab-login">Sign in</button>
+        <button type="button" id="tab-signup" class="{{SIGNUP_HIDDEN}}">Create account</button>
+      </div>
+
+      <form id="form-login" method="post" action="/login">
+        <input type="hidden" name="next" value="{{NEXT}}" />
+        <label for="li-user">Username</label>
+        <input id="li-user" name="username" autocomplete="username" required autofocus />
+        <label for="li-pass">Password</label>
+        <input id="li-pass" name="password" type="password" autocomplete="current-password" required />
+        <button class="go" type="submit">Sign in</button>
+      </form>
+
+      <form id="form-signup" method="post" action="/signup" class="hidden">
+        <label for="su-name">Full name</label>
+        <input id="su-name" name="display_name" autocomplete="name" required />
+        <label for="su-user">Username</label>
+        <input id="su-user" name="username" autocomplete="username" required />
+        <label for="su-pass">Password</label>
+        <input id="su-pass" name="password" type="password" autocomplete="new-password" required />
+        <div class="hint">At least 8 characters.</div>
+        <label for="su-code">Join code</label>
+        <input id="su-code" name="join_code" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+        <div class="hint">{{SIGNUP_HINT}}</div>
+        <button class="go" type="submit">Create account</button>
+      </form>
+      <p class="footer">{{FOOTER}}</p>
+    </div>
+  </main>
+
+  <script>
+    const tabs = { login: document.getElementById("tab-login"), signup: document.getElementById("tab-signup") };
+    const forms = { login: document.getElementById("form-login"), signup: document.getElementById("form-signup") };
+    function show(which) {
+      for (const key of ["login", "signup"]) {
+        tabs[key].classList.toggle("active", key === which);
+        forms[key].classList.toggle("hidden", key !== which);
+      }
+    }
+    tabs.login.addEventListener("click", () => show("login"));
+    tabs.signup.addEventListener("click", () => show("signup"));
+    show("{{TAB}}");
+  </script>
+  <script src="/login-backdrop.js"></script>
+</body>
+</html>

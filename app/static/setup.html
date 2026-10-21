@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Set up — {{PRODUCT}}</title>
+  <link rel="icon" href="{{FAVICON}}" type="image/svg+xml" />
+  <script>
+    (function () {
+      try {
+        var choice = localStorage.getItem("incipit-theme") || "light";
+        if (choice === "dark" || choice === "light") document.documentElement.setAttribute("data-theme", choice);
+      } catch (error) { document.documentElement.setAttribute("data-theme", "light"); }
+    })();
+  </script>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/backdrop.css" />
+  <link rel="stylesheet" href="/site.css" />
+</head>
+<body class="setup-page">
+  <main class="setup-shell">
+    <header class="setup-head">
+      <img src="{{LOGO}}" alt="" class="brand-mark" />
+      <div>
+        <h1>Set up <span class="brand-name">{{PRODUCT}}</span></h1>
+        <p class="setup-sub">A few steps make the site yours. You can leave and come back; each step is kept as you finish it.</p>
+      </div>
+    </header>
+    <div class="setup-body">
+      <ol class="setup-steps" id="setup-steps" aria-label="Setup steps"></ol>
+      <section class="setup-panel" id="setup-panel" aria-live="polite"></section>
+    </div>
+  </main>
+  <script>window.__SITE__ = {{SITE_JSON}};</script>
+  <script src="/terms.js"></script>
+  <script src="/page-kit.js"></script>
+  <script src="/login-backdrop.js"></script>
+  <script src="/appearance.js"></script>
+  <script src="/people.js"></script>
+  <script src="/prompt_builder.js"></script>
+  <script src="/tabs_admin.js"></script>
+  <script src="/access.js"></script>
+  <script src="/models.js"></script>
+  <script src="/setup.js"></script>
+</body>
+</html>

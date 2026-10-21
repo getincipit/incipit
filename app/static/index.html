@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{PRODUCT}} — Review</title>
+<link rel="icon" href="{{FAVICON}}" />
+<script>
+  /* The saved appearance goes on before the stylesheet paints, so a dark page never flashes white. */
+  (function () {
+    try {
+      var choice = localStorage.getItem("incipit-theme") || "light";
+      if (choice === "dark" || choice === "light") document.documentElement.setAttribute("data-theme", choice);
+    } catch (error) { document.documentElement.setAttribute("data-theme", "light"); }
+  })();
+</script>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="backdrop.css" />
+<link rel="stylesheet" href="/site.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <img src="{{LOGO}}" alt="" class="brand-mark" />
+        <div>
+          <div class="brand-title brand-name">{{PRODUCT}}</div>
+          <div class="brand-subtitle">Transcription Review</div>
+        </div>
+        <button id="btn-settings" class="gear-btn" title="Settings &amp; How It Works" aria-label="Settings &amp; How It Works">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="workflow-tabs" id="workflow-tabs">
+        </div>
+      </div>
+
+      <!-- Admin only, and only on the folder grid: it narrows the folder list below it. -->
+      <div class="sidebar-section hidden" id="folder-search-wrap">
+        <div class="folder-search-field">
+          <svg class="folder-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="folder-search" class="folder-search" type="search" autocomplete="off"
+                 placeholder="Search folders or people" aria-label="Search folders">
+        </div>
+      </div>
+
+      <div class="sidebar-section" id="filter-nav-section">
+        <div class="sidebar-label">Queue</div>
+        <div id="filter-nav" class="filter-nav">
+          <button class="nav-item active" data-filter="all">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span class="nav-item-label">All</span>
+            <span class="nav-count" id="count-all">0</span>
+          </button>
+          <button class="nav-item" data-filter="unreviewed">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+            <span class="nav-item-label">Unreviewed</span>
+            <span class="nav-count" id="count-unreviewed">0</span>
+          </button>
+          <button class="nav-item" data-filter="commented">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h3v4l4-4h9a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/><path d="M7.5 9h9M7.5 12.5h6"/></svg>
+            <span class="nav-item-label">Commented</span>
+            <span class="nav-count" id="count-commented">0</span>
+          </button>
+          <button class="nav-item" data-filter="accepted">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span class="nav-item-label">Accepted</span>
+            <span class="nav-count" id="count-accepted">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Shown on the folder grid, where the document filters above are hidden: the same slot,
+         answering the question that level of the screen actually poses -- whose desk is this
+         folder on. -->
+      <div class="sidebar-section hidden" id="folder-filter-section">
+        <div class="sidebar-label">Folders</div>
+        <div id="folder-filter-nav" class="filter-nav"></div>
+      </div>
+
+      <div class="sidebar-section" id="pipeline-section">
+        <div class="sidebar-label">Pipeline</div>
+        <div id="new-pipeline-actions">
+          <button id="btn-upload-scans" class="nav-action">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3M7 9l5-5 5 5M12 4v12"/></svg>
+            <span>Upload Scans</span>
+          </button>
+          <input type="file" id="upload-scans-input" webkitdirectory directory multiple class="hidden" accept="image/*" />
+          <button id="btn-draft-pending" class="nav-action">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Draft Pending</span>
+          </button>
+          <div id="new-pending-note" class="pending-note hidden"></div>
+          <div class="nav-hint">Export is per-folder &mdash; open a folder below to export it.</div>
+        </div>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer" id="sidebar-footer"></div>
+    </nav>
+
+    <div class="main">
+      <!-- What the pipeline is doing right now, for everyone. -->
+      <!-- One back control for the whole site. -->
+      <header id="nav-controls" class="detail-topbar hidden">
+        <button id="back-to-queue" class="btn btn-ghost">&larr; Back</button>
+        <div class="detail-topbar-nav">
+          <button id="prev-doc" class="btn btn-ghost" title="Previous document">&lsaquo; Prev</button>
+          <span id="doc-position" class="doc-position"></span>
+          <button id="next-doc" class="btn btn-ghost" title="Next document">Next &rsaquo;</button>
+        </div>
+      </header>
+
+      <main id="queue-view" class="scroll-pane">
+        <div class="queue-toolbar">
+          <div>
+            <h1>Review Queue <span id="workflow-pill" class="workflow-pill"></span></h1>
+            <p class="queue-subtitle" id="queue-subtitle"></p>
+          </div>
+        </div>
+        <!-- One bar per job the pipeline is actually running, from /api/activity: an editor who has
+           one folder uploading and another drafting watches both, each naming its own folder,
+           step, elapsed time and what it has left. -->
+        <div id="activity-bars" class="activity-bars" aria-live="polite"></div>
+        <div id="pipeline-status" class="pipeline-status hidden"></div>
+        <div id="pending-batches" class="pending-batches hidden">
+          <div class="pending-batches-title">Awaiting split confirmation</div>
+          <div id="pending-batches-list"></div>
+        </div>
+        <!-- New Documents workflow: top-level folder browser (shown when no folder is open). -->
+        <div id="folder-grid" class="folder-grid hidden"></div>
+        <!-- New Documents workflow: header shown while inside a folder (breadcrumb + folder export). -->
+        <div id="folder-header" class="folder-header hidden">
+          <button id="folder-back" class="btn btn-ghost btn-small">&larr; All folders</button>
+          <span id="folder-header-name" class="folder-header-name"></span>
+          <button id="folder-rename" class="btn btn-ghost btn-small">Rename</button>
+          <button id="folder-resplit" class="btn btn-secondary btn-small">Fix Split</button>
+          <button id="folder-delete" class="btn btn-delete-outline btn-small">Delete Folder</button>
+          <button id="folder-export" class="btn btn-secondary btn-small">Export to host</button>
+        </div>
+        <!-- Renaming after the split is confirmed: the name is half of what the folder is called on
+           disk, so saving moves the bucket to match. -->
+        <div id="folder-rename-edit" class="folder-rename-row hidden">
+          <input id="folder-rename-input" class="folder-rename-input" maxlength="120"
+                 aria-label="Folder name" />
+          <button id="folder-rename-save" class="btn btn-secondary btn-small">Save</button>
+          <button id="folder-rename-default" class="btn btn-secondary btn-small">Use default title</button>
+          <button id="folder-rename-cancel" class="btn btn-ghost btn-small">Cancel</button>
+          <span id="folder-rename-hint" class="folder-rename-hint"></span>
+        </div>
+        <!-- Shown inside a folder that still has undrafted documents: explains why the folder's -->
+        <!-- document count is higher than what's listed here (undrafted docs aren't reviewable yet), -->
+        <!-- and lets the reviewer pick how many of THIS folder's pending documents to draft (or all -->
+        <!-- of them), independent of the workflow-wide Draft Pending button/batch size. -->
+        <!-- Selection mode for fixing a split after drafting: pick the documents whose boundaries
+           are wrong, then choose whether to merge their existing text or re-cut their pages. -->
+        <div id="resplit-bar" class="resplit-bar hidden">
+          <div class="resplit-bar-text">
+            <strong>Fixing a split.</strong>
+            <span id="resplit-bar-count">Select the documents whose boundaries are wrong.</span>
+            <span id="resplit-bar-hint" class="resplit-bar-hint">Pick two or more that are really one document to merge them, or one document to cut it up.</span>
+          </div>
+          <div class="resplit-bar-actions">
+            <button id="resplit-cancel" class="btn btn-ghost btn-small">Cancel</button>
+            <button id="resplit-merge" class="btn btn-secondary btn-small" disabled>Merge into One</button>
+            <button id="resplit-start" class="btn btn-accept btn-small" disabled>Re-cut Boundaries</button>
+          </div>
+        </div>
+
+        <div id="folder-drafting-note" class="folder-drafting-note hidden">
+          <div id="folder-drafting-note-text"></div>
+          <div class="folder-draft-controls">
+            <input type="number" id="folder-draft-count" class="folder-draft-count-input" min="1" />
+            <button id="folder-draft-count-btn" class="btn btn-secondary btn-small">Draft</button>
+            <button id="folder-draft-all-btn" class="btn btn-secondary btn-small">Draft All</button>
+          </div>
+        </div>
+        <div id="queue-list" class="queue-list"></div>
+        <div id="queue-empty" class="empty-state hidden">No documents match this filter.</div>
+      </main>
+
+      <main id="detail-view" class="detail-view hidden">
+        <section class="image-pane">
+          <div class="image-toolbar">
+            <div class="page-nav">
+              <button id="page-prev" class="btn btn-ghost">&lsaquo;</button>
+              <span id="page-indicator">Page 1/1</span>
+              <button id="page-next" class="btn btn-ghost">&rsaquo;</button>
+            </div>
+            <!-- Turned and mirrored only on screen until saved; a saved orientation is also how the scan exports. -->
+            <div class="orient-controls" role="group" aria-label="Page orientation">
+              <button id="orient-left" class="btn btn-ghost btn-icon" data-turn="left" title="Rotate left" aria-label="Rotate left">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+              <button id="orient-right" class="btn btn-ghost btn-icon" data-turn="right" title="Rotate right" aria-label="Rotate right">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+              </button>
+              <button id="orient-flip-h" class="btn btn-ghost btn-icon" data-turn="flip-h" title="Mirror left to right" aria-label="Mirror left to right">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 7 5 5-5 5V7"/><path d="m21 7-5 5 5 5V7"/><path d="M12 20v2M12 14v2M12 8v2M12 2v2"/></svg>
+              </button>
+              <button id="orient-flip-v" class="btn btn-ghost btn-icon" data-turn="flip-v" title="Flip top to bottom" aria-label="Flip top to bottom">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m17 3-5 5-5-5h10"/><path d="m17 21-5-5-5 5h10"/><path d="M4 12H2M10 12H8M16 12h-2M22 12h-2"/></svg>
+              </button>
+              <button id="orient-save" class="btn btn-primary btn-small hidden"
+                      title="Keep this orientation on the site and in the export" aria-label="Save orientation">Save</button>
+            </div>
+            <div class="zoom-controls">
+              <button id="zoom-out" class="btn btn-ghost" title="Zoom out">&minus;</button>
+              <button id="zoom-in" class="btn btn-ghost" title="Zoom in">+</button>
+              <button id="zoom-reset" class="btn btn-secondary">Reset View</button>
+            </div>
+          </div>
+          <div class="viewer" id="viewer">
+            <img id="page-image" draggable="false" alt="Document page" />
+          </div>
+          <p class="viewer-hint">Scroll or +/&minus; to zoom &middot; press and hold to drag</p>
+        </section>
+
+        <section class="info-pane">
+          <div class="info-scroll">
+            <div class="doc-header">
+              <div>
+                <h2 id="doc-title">&nbsp;</h2>
+                <div class="doc-id-row">
+                  <span id="doc-id" class="doc-id"></span>
+                  <button id="btn-edit-docid" class="btn btn-ghost btn-small hidden">Edit ID</button>
+                  <input type="text" id="doc-id-input" class="doc-id-input hidden" />
+                  <button id="btn-save-docid" class="btn btn-secondary btn-small hidden">Save</button>
+                  <button id="btn-cancel-docid" class="btn btn-ghost btn-small hidden">Cancel</button>
+                </div>
+              </div>
+              <div class="doc-header-right">
+                <span id="status-badge" class="badge"></span>
+                <!-- For a document the model returned nothing useful for: draft this one again,
+                   without waiting for a batch or touching the rest of the folder. -->
+                <button id="btn-redraft" class="btn btn-secondary btn-small hidden">Redraft</button>
+                <!-- Says a redraft landed, after the fields it replaced have finished flashing. -->
+                <span id="redraft-stamp" class="redraft-stamp hidden" role="status" aria-live="polite"></span>
+                <button id="btn-delete-document" class="btn btn-delete-outline btn-small">Delete Document</button>
+              </div>
+            </div>
+
+            <div class="metadata-grid" id="metadata-grid"></div>
+
+            <div class="block transcription-block">
+              <div class="block-header">
+                <h3>Transcription</h3>
+                <button id="toggle-edit" class="btn btn-secondary btn-small">Edit</button>
+              </div>
+              <div id="text-preview" class="text-preview"></div>
+              <textarea id="text-edit" class="text-edit hidden" spellcheck="false"></textarea>
+            </div>
+
+            <!-- The document's list fields, drawn by review_fields.js from its registry. -->
+            <div id="field-blocks"></div>
+
+            <div class="block">
+              <h3>Editors Notes</h3>
+              <textarea id="review-notes" rows="2" placeholder="Optional notes for other editors..."></textarea>
+            </div>
+
+            <!-- Who reviewed this is taken from the login (see _reviewer_name); it used to be a
+               field the reviewer filled in, which is why a folder could not say who had done what. -->
+            <div class="block reviewed-by-line hidden" id="reviewed-by-line">
+              <span class="reviewed-by-mark">&#10003;</span>
+              <span id="reviewed-by-text"></span>
+            </div>
+          </div>
+
+          <div class="action-bar">
+            <!-- Two buttons, one of which toggles. -->
+            <button id="btn-save-draft" class="btn btn-secondary btn-deep">Save Draft</button>
+            <button id="btn-accept" class="btn btn-accept btn-deep">Accept</button>
+          </div>
+          <!-- Why nothing here can be changed, when a reviewer opens a document in an approved folder. -->
+          <p id="locked-note" class="locked-note hidden" role="note">This folder is approved, so its
+            documents are locked. Ask your <span data-term="reviewer" data-case="lower">reviewer</span> to send it back if something needs changing.</p>
+          <div id="save-toast" class="save-toast" role="status" aria-live="polite"></div>
+        </section>
+      </main>
+
+      <main id="split-review-view" class="scroll-pane hidden">
+        <div class="queue-toolbar">
+          <div>
+            <h1>Confirm Document Split</h1>
+            <p class="queue-subtitle">Fix any boundary the proposal got wrong, then name each resulting document.</p>
+            <div class="split-folder-id-field">
+              <label for="split-folder-id-input">Folder ID</label>
+              <input type="text" id="split-folder-id-input" placeholder="e.g. E2241" />
+              <label for="split-folder-name-input">Folder Name <span class="split-folder-name-optional">(optional)</span></label>
+              <input type="text" id="split-folder-name-input" placeholder="e.g. E2241_Equipment &amp; Supplies" />
+              <button id="split-folder-id-apply" class="btn btn-secondary btn-small">Apply Naming</button>
+            </div>
+          </div>
+          <div class="split-review-actions">
+            <button id="split-back" class="btn btn-ghost">&larr; Cancel</button>
+            <button id="split-retry-proposal" class="btn btn-secondary hidden">Retry Split Proposal</button>
+            <button id="split-confirm" class="btn btn-accept">Confirm &amp; Draft</button>
+          </div>
+        </div>
+        <div id="split-confirm-status" class="pipeline-status hidden"></div>
+
+        <!-- One proposed document at a time. -->
+        <div id="split-review-body" class="split-review-body">
+          <!-- Every proposed document at once, scrollable, with the current one marked. -->
+          <aside id="split-doc-panel" class="split-doc-panel" aria-label="Proposed documents">
+            <div class="split-doc-panel-head">
+              <div>
+                <span id="split-panel-title">Proposed documents</span>
+                <span id="split-panel-progress" class="split-panel-progress"></span>
+              </div>
+              <button id="split-merge-selected" class="btn btn-secondary btn-small" disabled>Merge selected</button>
+            </div>
+            <p class="split-panel-hint">Drag to reorder · tick any two or more to merge</p>
+            <div id="split-doc-list" class="split-doc-list"></div>
+          </aside>
+
+          <div class="split-review-main">
+          <div class="split-doc-header">
+            <div class="split-doc-heading">
+              <h2 id="split-doc-progress">Document 1 of 1</h2>
+              <p id="split-doc-pagecount" class="split-doc-pagecount"></p>
+            </div>
+            <div class="split-doc-name-field">
+              <label for="split-doc-name">Document ID</label>
+              <input type="text" id="split-doc-name" placeholder="e.g. E2241AAA" />
+            </div>
+          </div>
+
+          <div class="split-viewer">
+            <button id="split-page-prev" class="split-page-nav" aria-label="Previous page">&lsaquo;</button>
+            <div class="split-viewer-stage">
+              <img id="split-viewer-img" alt="Document page" />
+              <div id="split-duplicate-banner" class="split-duplicate-banner hidden"></div>
+            </div>
+            <button id="split-page-next" class="split-page-nav" aria-label="Next page">&rsaquo;</button>
+          </div>
+          <div class="split-viewer-caption">
+            <span id="split-page-label">Page 1 of 1</span>
+            <span id="split-page-filename" class="split-page-filename"></span>
+            <button id="split-page-zoom" class="btn btn-ghost btn-small">View full size</button>
+          </div>
+
+          <div id="split-fix-panel" class="split-fix-panel hidden"></div>
+
+          <div class="split-decision-bar">
+            <button id="split-doc-prev" class="btn btn-ghost">&larr; Previous document</button>
+            <div class="split-decision-main">
+              <button id="split-needs-fixing" class="btn btn-secondary">Needs fixing</button>
+              <!-- Dropping a document before it is confirmed: its pages stay in the batch, it simply
+                 never becomes a document, and the DocIDs close up behind it. -->
+              <button id="split-doc-drop" class="btn btn-delete-outline">Remove document</button>
+              <button id="split-looks-right" class="btn btn-accept">Looks right &rarr;</button>
+            </div>
+            <button id="split-doc-next" class="btn btn-ghost">Skip &rarr;</button>
+          </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="leave-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Unsaved changes</h3>
+      <p>This document has unsaved changes. What would you like to do before leaving?</p>
+      <div class="modal-actions">
+        <button id="modal-save-leave" class="btn btn-accept">Save and Leave</button>
+        <button id="modal-cancel" class="btn btn-danger">Cancel</button>
+        <button id="modal-discard-leave" class="btn btn-ghost">Do Not Save and Leave</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="image-preview-modal" class="modal-overlay hidden">
+    <div class="image-preview-content">
+      <img id="image-preview-img" alt="Page preview" />
+    </div>
+  </div>
+
+  <!-- What drafting a folder cost and took. -->
+  <div id="analytics-modal" class="modal-overlay hidden" role="dialog" aria-modal="true"
+       aria-labelledby="analytics-title">
+    <div class="modal analytics-modal">
+      <div class="analytics-head">
+        <div>
+          <h3 id="analytics-title">Drafting analytics</h3>
+          <p id="analytics-folder" class="analytics-folder"></p>
+        </div>
+        <button id="analytics-close" class="analytics-close" aria-label="Close">&times;</button>
+      </div>
+      <div id="analytics-body"></div>
+    </div>
+  </div>
+
+
+  <!-- Generic delete-confirmation modal, reused for a single document (either workflow) and a whole
+     New Documents folder -- title/message are filled in per use, see confirmDelete() in app.js. -->
+  <div id="confirm-delete-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="confirm-delete-title">Delete?</h3>
+      <p id="confirm-delete-message"></p>
+      <label class="delete-field">
+        <span>Reason for deleting</span>
+        <input id="confirm-delete-reason" type="text" placeholder="e.g. duplicate scan of the same page">
+      </label>
+      <p id="confirm-delete-error" class="delete-error hidden"></p>
+      <div class="modal-actions">
+        <button id="confirm-delete-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="confirm-delete-confirm" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Choose exactly which archive documents to pull in, instead of taking whatever the archive
+     returns next. -->
+
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal settings-modal">
+      <div class="settings-modal-header">
+        <div class="settings-tabs">
+          <button class="settings-tab active" data-settings-tab="settings">Settings</button>
+          <button class="settings-tab" data-settings-tab="style">Style</button>
+          <button class="settings-tab" data-settings-tab="site">Site</button>
+          <button class="settings-tab" data-settings-tab="appearance">Appearance</button>
+          <button class="settings-tab" data-settings-tab="prompt">Prompt</button>
+          <button class="settings-tab" data-settings-tab="tabs">Tabs</button>
+          <button class="settings-tab" data-settings-tab="models">Models</button>
+          <button class="settings-tab" data-settings-tab="usage">Usage</button>
+          <button class="settings-tab" data-settings-tab="backups">Backups</button>
+          <button class="settings-tab" data-settings-tab="updates">Updates</button>
+          <button class="settings-tab" data-settings-tab="access">Access</button>
+          <button class="settings-tab" data-settings-tab="info">How It Works</button>
+          <button class="settings-tab" data-settings-tab="deletions">Deletion Log</button>
+          <button class="settings-tab" data-settings-tab="running">Running Now</button>
+        </div>
+        <button id="settings-close" class="btn btn-ghost btn-small" aria-label="Close">&times;</button>
+      </div>
+
+      <div id="settings-panel-settings" class="settings-panel">
+        <div id="settings-status" class="pipeline-status hidden"></div>
+
+        <div class="setting-card">
+          <div class="setting-card-head">
+            <h4>Spend cap</h4>
+            <span class="setting-badge">Both workflows</span>
+          </div>
+          <div class="setting-row">
+            <label for="settings-max-total-cost">Maximum total cost</label>
+            <div class="setting-input"><span class="setting-prefix">$</span>
+              <input type="number" id="settings-max-total-cost" min="0.01" step="0.01" /></div>
+          </div>
+          <p class="setting-note" id="settings-cost-hint">Nothing that costs money runs once this
+            is reached.</p>
+        </div>
+
+        <div class="setting-card">
+          <div class="setting-card-head">
+            <h4>New Documents</h4>
+            <span class="setting-badge">Scans uploaded here</span>
+          </div>
+          <div class="setting-row">
+            <label for="settings-new-document-batch-size">Documents drafted per click</label>
+            <div class="setting-input">
+              <input type="number" id="settings-new-document-batch-size" min="1" step="1" /></div>
+          </div>
+          <p class="setting-note">Applies to <strong>Draft Pending</strong> and the draft that
+            follows <strong>Confirm &amp; Draft</strong>. Raise it to get through a large split in
+            fewer clicks.</p>
+        </div>
+
+        <div class="settings-form-actions">
+          <button id="settings-save" class="btn btn-accept">Save settings</button>
+        </div>
+      </div>
+
+      <div id="settings-panel-style" class="settings-panel hidden">
+        <div class="setting-card">
+          <div class="setting-card-head">
+            <h4>Appearance</h4>
+            <span class="setting-badge">This browser</span>
+          </div>
+          <p class="setting-note">Light or dark, or whichever the system is set to. The choice is kept on this device.</p>
+          <div class="theme-choice" role="radiogroup" aria-label="Appearance">
+            <button type="button" class="theme-option" role="radio" aria-checked="false" data-theme-choice="system">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>System</button>
+            <button type="button" class="theme-option" role="radio" aria-checked="true" data-theme-choice="light">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Light</button>
+            <button type="button" class="theme-option" role="radio" aria-checked="false" data-theme-choice="dark">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filled by appearance.js when opened: they are an administrator's, and read live. -->
+      <div id="settings-panel-site" class="settings-panel hidden"></div>
+      <div id="settings-panel-appearance" class="settings-panel hidden"></div>
+      <div id="settings-panel-prompt" class="settings-panel hidden"></div>
+      <div id="settings-panel-tabs" class="settings-panel hidden"></div>
+      <div id="settings-panel-models" class="settings-panel hidden"></div>
+      <div id="settings-panel-usage" class="settings-panel hidden"></div>
+      <div id="settings-panel-backups" class="settings-panel hidden"></div>
+      <div id="settings-panel-updates" class="settings-panel hidden"></div>
+      <div id="settings-panel-access" class="settings-panel hidden"></div>
+
+      <div id="settings-panel-running" class="settings-panel hidden">
+        <p class="settings-hint">What the pipeline is doing right now, and who asked for it.
+          Nothing here needs attention &mdash; it is where "is it still going?" is answered.</p>
+        <div id="generation-log-body"></div>
+      </div>
+
+      <div id="settings-panel-deletions" class="settings-panel hidden">
+        <p class="settings-intro">
+          Every permanent deletion in either workflow, newest first — who removed it, when, and the
+          reason they gave. Recorded automatically and never editable from the site, so it stays a
+          reliable record of what left the archive.
+        </p>
+        <div id="deletion-log-list" class="deletion-log"></div>
+      </div>
+
+      <div id="settings-panel-info" class="settings-panel hidden">
+        <div class="info-content">
+
+          <div class="info-role-tabs" id="info-role-tabs">
+            <button class="info-role-tab" data-info-role="reviewer">How the site works &mdash; <span data-term="reviewer">Reviewer</span></button>
+            <button class="info-role-tab" data-info-role="admin">How the site works &mdash; <span data-term="admin">Admin</span></button>
+            <button class="info-role-tab" data-info-role="pipeline">Pipeline reference</button>
+          </div>
+
+          <!-- ============ REVIEWER ============ -->
+          <section id="info-role-reviewer" class="info-role-panel hidden">
+            <p class="info-lede">
+              You transcribe and review the folders an <span data-term="admin" data-case="lower">administrator</span> assigns to you, then send them
+              back for approval. <strong>You see only your own folders</strong> &mdash; the queue,
+              the counts and the export are all filtered to what is yours, so nothing here is a
+              folder someone else is responsible for.
+            </p>
+
+            <div class="info-live" id="info-live-reviewer"></div>
+
+            <h4>Your round trip</h4>
+            <ol class="info-steps">
+              <li><strong>A folder is assigned to you.</strong> It appears in your queue marked
+                <span class="info-badge info-badge-unreviewed">Assigned</span>, and the bell in the
+                top bar tells you it arrived. Nothing is assigned to you silently.</li>
+              <li><strong>Work through its documents.</strong> Open each one to see its page image
+                beside its editable fields. Correct anything the draft got wrong, then
+                <span class="info-badge info-badge-accepted">Accept</span> it, or leave a comment
+                on it if it needs someone else&rsquo;s eyes. <strong>Save Draft</strong> keeps your
+                edits without deciding.
+                The progress bar on the folder counts accepted documents, so you can always see how
+                much is left.</li>
+              <li><strong>Leave a comment where the problem is.</strong> Each document has its own
+                comment thread, behind the <strong>Comments</strong> button beside the status pill.
+                Use it for &ldquo;the date here is ambiguous&rdquo; rather than putting the note on
+                the whole folder. This is how a document is marked as needing another look: the
+                folder&rsquo;s document list shows a comment icon on every row, carrying the number
+                of comments, and clicking it reads the thread without opening the document. The
+                <strong>Commented</strong> filter narrows the folder to the documents with a
+                question still open on them. Either of you can mark a comment resolved.</li>
+              <li><strong>Submit the folder.</strong> The <strong>Submit for review</strong> button
+                hands it to the <span data-term="admin" data-plural data-case="lower">administrators</span> and moves it to
+                <span class="info-badge">Submitted</span>. You can add a note saying what you were
+                unsure about. <em>Submit only unlocks once every document in the folder has been
+                reviewed</em> &mdash; otherwise &ldquo;submitted&rdquo; would just mean you had
+                pressed a button, and whoever opened it next would find unfinished work.</li>
+              <li><strong>It comes back, or it is approved.</strong> If an <span data-term="admin" data-case="lower">administrator</span> sends it
+                back it returns as <span class="info-badge info-badge-returned">Returned</span> with
+                their note, and it is yours to edit again. Once they have accepted every document it
+                becomes <span class="info-badge info-badge-accepted">Approved</span>, your progress
+                bar turns green, and it is locked &mdash; approved work can no longer be changed
+                without reopening it.</li>
+            </ol>
+
+            <h4>What you can and cannot do</h4>
+            <table class="info-perms">
+              <tbody>
+                <tr><td>See folders assigned to you</td><td class="perm-yes">Yes</td></tr>
+                <tr><td>See anyone else&rsquo;s folders</td><td class="perm-no">No</td></tr>
+                <tr><td>Edit, accept and comment on documents in your folders</td><td class="perm-yes">Yes</td></tr>
+                <tr><td>Upload a folder of new scans</td><td class="perm-yes">Yes &mdash; you are recorded as its uploader</td></tr>
+                <tr><td>Comment on a document</td><td class="perm-yes">Yes</td></tr>
+                <tr><td>Submit a folder for review</td><td class="perm-yes">Yes, once every document is reviewed</td></tr>
+                <tr><td>Send a folder back, or unassign it</td><td class="perm-no">No &mdash; <span data-term="admin" data-plural data-case="lower">administrators</span> only</td></tr>
+                <tr><td>Export a folder</td><td class="perm-no">No &mdash; <span data-term="admin" data-plural data-case="lower">administrators</span> only</td></tr>
+                <tr><td>Change pipeline settings, or delete documents</td><td class="perm-no">No</td></tr>
+              </tbody>
+            </table>
+
+            <h4>Editing the transcription</h4>
+            <ul class="info-steps">
+              <li><strong>Paragraph indents.</strong> The draft indents the paragraphs the page
+                indents. Where it gets one wrong, put the cursor in the paragraph and press
+                <kbd>Tab</kbd> to indent it or <kbd>Shift</kbd>+<kbd>Tab</kbd> to take the indent
+                away. <kbd>Esc</kbd> returns Tab to moving between fields.</li>
+              <li><strong>Multi-page documents.</strong> Each scan after the first begins with a
+                <code>[page 2]</code> marker, drawn as a rule across the transcription. Every scan
+                is transcribed, including a handwritten draft or a carbon copy of a page already
+                there &mdash; two versions of one letter are two pages, not a repeat to skip.</li>
+              <li><strong>Your edits are saved and backed up.</strong> Accept or Save Draft writes
+                the whole record &mdash; transcription, title, date, author, recipient, place, your
+                notes &mdash; and the next backup carries that version, replacing the one before it.</li>
+            </ul>
+
+            <h4>Your account</h4>
+            <p>Click your name in the top bar. You can change your password, or close your account
+              &mdash; which signs you out for good and ends your access. Closing it does not erase
+              your work: the changelog still records what you transcribed and submitted.</p>
+
+            <h4>Reading the changelog</h4>
+            <p>Every folder carries its own history &mdash; who was assigned it, who submitted it,
+              who sent it back and why, who approved it. It reads as plain sentences
+              (&ldquo;completed by John, reviewed by Paul&rdquo;), so months later it is still
+              obvious who did what.</p>
+          </section>
+
+          <!-- ============ ADMIN ============ -->
+          <section id="info-role-admin" class="info-role-panel hidden">
+            <p class="info-lede">
+              You see <strong>everything</strong> &mdash; every folder, every <span data-term="reviewer" data-case="lower">reviewer</span>, every
+              document &mdash; and you are the only role that can approve work or export it.
+              Your job here is to hand work out, check it when it comes back, and release it.
+            </p>
+
+            <div class="info-live" id="info-live-admin"></div>
+
+            <h4>The loop you run</h4>
+            <ol class="info-steps">
+              <li><strong>Assign a folder.</strong> In <strong>Team</strong>, pick a folder and a
+                <span data-term="reviewer" data-case="lower">reviewer</span>. The folder list is a dropdown of real folder IDs rather than a text box
+                &mdash; typing a folder&rsquo;s <em>name</em> where its <em>ID</em> belongs used to
+                produce an assignment that pointed at nothing, leaving the <span data-term="reviewer" data-case="lower">reviewer</span> with an empty
+                queue and no error. The <span data-term="reviewer" data-case="lower">reviewer</span> is notified.</li>
+              <li><strong>Watch progress without interrupting.</strong> Each folder card shows a
+                progress bar computed from its documents, so you can tell &ldquo;started&rdquo; from
+                &ldquo;nearly done&rdquo; at a glance. Open comments identify documents that still
+                need attention. The <strong>Contributors</strong> table in Team totals each <span data-term="reviewer" data-case="lower">reviewer</span>&rsquo;s
+                folders, documents, submissions, times sent back and average turnaround.</li>
+              <li><strong>Review a submission.</strong> A submitted folder arrives with the
+                <span data-term="reviewer" data-case="lower">reviewer</span>&rsquo;s note. Open its documents, read the comment threads &mdash; the
+                <strong>Comments</strong> button beside the status pill carries a count when any are
+                open &mdash; and use <strong>History</strong> in that panel to see exactly which
+                fields were changed and by whom.</li>
+              <li><strong>Send it back, or finish reviewing it.</strong> <strong>Send back</strong>
+                puts it back in the <span data-term="reviewer" data-case="lower">reviewer</span>&rsquo;s hands with your note attached &mdash; say what
+                needs fixing, since that note is the whole message. There is no Approve button:
+                accepting the last document approves the folder and marks it
+                <strong>Ready to export</strong>. Unreview one and the approval is withdrawn
+                again, so unfinished work cannot reach the deliverable &mdash; which is the one
+                thing review exists to prevent.</li>
+              <li><strong>Export.</strong> Export is per folder and <span data-term="admin" data-case="lower">administrator</span>-only: a ZIP
+                holding the folder&rsquo;s CSV and every exported page image. <span data-term="reviewer" data-plural>Reviewers</span> can reach
+                neither the button nor the endpoint behind it.</li>
+            </ol>
+
+            <h4>Managing people</h4>
+            <ul class="info-list">
+              <li><strong>Adding people.</strong> In Team &rarr; People, create an account with a
+                temporary password, or make a join code in Team &rarr; Invite and hand it out: whoever
+                holds it creates their own account from the sign-in page. <span data-term="admin" data-plural>Administrators</span> add <span data-term="reviewer" data-plural data-case="lower">reviewers</span>;
+                only the owner adds <span data-term="admin" data-plural data-case="lower">administrators</span>.</li>
+              <li><strong>Roster CSV.</strong> Download who holds which folder, with status and
+                last activity, from Team.</li>
+              <li><strong>Reassignment.</strong> Assigning a folder to a different <span data-term="reviewer" data-case="lower">reviewer</span> moves it;
+                the changelog keeps both names, so the earlier <span data-term="reviewer" data-case="lower">reviewer</span>&rsquo;s work is still
+                attributed to them.</li>
+            </ul>
+
+            <h4>Reading the Contributors table</h4>
+            <ul class="info-list">
+              <li><strong>Last active</strong> is the last time that person did anything &mdash;
+                editing or accepting a document counts, not only submitting a folder. Someone part
+                way through a folder shows today&rsquo;s date, not &ldquo;never&rdquo;.</li>
+              <li><strong>Avg turnaround</strong> is the hours from being given a folder to first
+                submitting it, averaged over their folders. It stays blank until they have submitted
+                something, and it measures the first submission, so work sent back and corrected
+                does not read as slowness &mdash; <strong>Sent back</strong> is where that shows.</li>
+            </ul>
+
+            <h4>Accounts and backups</h4>
+            <ul class="info-list">
+              <li><strong>Anyone can close their own account</strong> from their name in the top
+                bar. It ends their access and their sessions; it does not remove their history, so
+                the changelog still says who did the work. The owner cannot close their account;
+                they transfer ownership first, so the site is never left without one.</li>
+              <li><strong>Backups run inside this server</strong>, every ten minutes, and only when
+                something has changed. There is no separate scheduled task to check. Each pass
+                snapshots the database and refreshes the documents&rsquo; own folders, replacing the
+                file for a document that has been edited rather than stacking up copies of it.</li>
+            </ul>
+
+            <h4><span data-term="admin">Administrator</span>-only, enforced on the server</h4>
+            <p>Approving, returning, exporting, deleting, editing pipeline settings, the roster and
+              the deletion log are all refused for a <span data-term="reviewer" data-case="lower">reviewer</span> account by the server itself &mdash;
+              not merely hidden in the interface. Hiding a button stops the button; it does not stop
+              anyone who knows the address behind it.</p>
+          </section>
+
+          <!-- ============ PIPELINE REFERENCE (the panel's original content) ============ -->
+          <section id="info-role-pipeline" class="info-role-panel hidden">
+          <p class="info-lede">
+            Scans go in as a folder; the model proposes where each document starts, drafts the
+            transcription and the catalogue fields; people review; the folder goes out as a CSV,
+            JSON records and images.
+          </p>
+
+          <div id="info-tab-new" class="info-tab-panel">
+            <h4>New Documents — the document lifecycle</h4>
+            <p>Every new document moves through these stages. Knowing which stage a document is in
+              explains <em>when it shows up where</em>:</p>
+            <div class="info-lifecycle">
+              <div class="info-life-step"><span class="info-life-num">1</span><span class="info-life-label">Upload<br>scans</span></div>
+              <div class="info-life-arrow">→</div>
+              <div class="info-life-step"><span class="info-life-num">2</span><span class="info-life-label">Confirm<br>the split</span></div>
+              <div class="info-life-arrow">→</div>
+              <div class="info-life-step"><span class="info-life-num">3</span><span class="info-life-label">Draft<br>pending</span></div>
+              <div class="info-life-arrow">→</div>
+              <div class="info-life-step"><span class="info-life-num">4</span><span class="info-life-label">Review &amp;<br>approve</span></div>
+              <div class="info-life-arrow">→</div>
+              <div class="info-life-step"><span class="info-life-num">5</span><span class="info-life-label">Export<br>the folder</span></div>
+            </div>
+            <ol class="info-steps">
+              <li>
+                <strong>Upload Scans.</strong> Pick the scan folder. The <strong>Folder ID</strong>
+                (e.g. <code>E2241</code>) is auto-detected from the folder's name; the full name (e.g.
+                <code>E2241_Equipment&nbsp;&amp;&nbsp;Supplies</code>) is kept for the folder label. If
+                you ever need to correct the Folder ID afterward on the Confirm Split screen below, an
+                optional Folder Name field there lets you set (or fix) the full label too.
+              </li>
+              <li>
+                <strong>Confirm the split.</strong> The model proposes where each document starts, and you
+                check its work <em>one document at a time</em>. The viewer shows the document's scans
+                — page through them with the arrows (or the ← → keys) — then click
+                <strong>Looks right</strong> to confirm it and move to the next, or
+                <strong>Needs fixing</strong> if the boundaries are wrong.
+                <br>
+                "Needs fixing" offers the only two things that can be wrong: the document
+                <em>ends too late</em> (click <strong>Split here</strong> on the page that really
+                begins the next document) or it <em>ends too early</em> (click
+                <strong>Merge with next listed document</strong>). You can also tick any two or more
+                cards in the document list and click <strong>Merge selected</strong>, even when the
+                documents are not beside each other. Drag cards to reorder them; their positional
+                Document IDs update to match the new order.
+                <br>
+                Each document's ID is pre-filled (<code>E2241AAA</code>, <code>E2241AAB</code>, …)
+                and editable. Confirming auto-drafts the first batch.
+                <strong>Got a boundary wrong and only noticed later?</strong> That's fixable after
+                drafting too — see "Fixing a split you already confirmed" below.
+              </li>
+              <li>
+                <strong>Draft Pending.</strong> A large split drafts one batch per click.
+                <em>Documents awaiting drafting do not appear in the review queue yet</em> — that's the
+                stage most <span data-term="reviewer" data-plural data-case="lower">reviewers</span> get surprised by. Keep clicking Draft Pending until the folder's
+                "awaiting drafting" count reaches zero.
+              </li>
+              <li><strong>Review &amp; approve</strong> each drafted document (below).</li>
+              <li><strong>Export</strong> the folder (below).</li>
+            </ol>
+
+            <h4>Browsing folders</h4>
+            <p>The New Documents queue opens on a grid of <strong>folder cards</strong> — one per
+              archival folder — plus any batches still awaiting split confirmation. Click a folder to
+              see its documents; use <strong>← All folders</strong> to come back. Each card reads:</p>
+            <ul class="info-annot">
+              <li><strong>ready to review</strong> — drafted documents you can open now.</li>
+              <li><strong>awaiting drafting</strong> — still need <em>Draft Pending</em>; not listed yet.</li>
+              <li><strong>N of M reviewed</strong> — the bar turns green and the card says
+                <strong>Ready to export</strong> once every document carries a <span data-term="reviewer" data-case="lower">reviewer</span>&rsquo;s
+                verdict. A folder still out with a <span data-term="reviewer" data-case="lower">reviewer</span> shows their progress instead, in pale
+                blue, and never green.</li>
+            </ul>
+
+            <h4>Reviewing a document</h4>
+            <p>Open a document to see its page image beside its editable fields. Every AI-produced
+              field can be corrected. New Documents specifically let you edit two things the other
+              workflow can't:</p>
+            <ul class="info-bullets">
+              <li><strong>Title.</strong> Auto-built from Document Type / Author / Recipient / Date and
+                normally updates as you edit those. If it still reads wrong, type your own — it's saved
+                as an override and travels into the exported CSV's <code>Title</code> column.</li>
+              <li><strong>Document ID.</strong> Use <strong>Edit ID</strong> to fix a typo or a wrong
+                split-time suggestion; the change follows the document everywhere, including export.</li>
+            </ul>
+            <p>Then set a status: <span class="info-badge info-badge-accepted">Accept</span>
+              (approved, as-is or edited), or <strong>Save Draft</strong> to keep edits without
+              changing status. Accept is reversible with <strong>Mark Unreviewed</strong>. A document
+              needing follow-up gets a comment, which the folder&rsquo;s document list then shows on
+              its row.</p>
+
+            <h4>Fixing a split you already confirmed</h4>
+            <p>
+              Bad boundaries often only become obvious once you're reading the drafts — two documents
+              that are really one, or one that's really two. Open the folder and click
+              <strong>Fix Split</strong>, then tick the documents that are wrong. Choose
+              <strong>Merge into One</strong> to join two or more existing drafts, or
+              <strong>Re-cut Boundaries</strong> to return their scans to the split viewer.
+            </p>
+            <p>
+              Documents merged into one may be non-adjacent, but must come from the
+              <strong>same upload</strong>. A merge keeps and joins their reviewed transcriptions in
+              scan order, asks the model to regenerate the combined metadata/title, and returns the result
+              to Unreviewed. Re-cutting replaces the selected documents and re-drafts their changed
+              pages. Documents you did not select remain separate.
+            </p>
+
+            <h4>Exporting a completed folder</h4>
+            <p>After every document has been accepted by both the <span data-term="reviewer" data-case="lower">reviewer</span> and an <span data-term="admin" data-case="lower">admin</span>,
+              the completion prompt offers <strong>Export</strong> or <strong>Not yet</strong>.
+              Exports are saved under <code>data/exports</code> on the host and copied to both
+              backup destinations. No files are downloaded to your device. You can use
+              <strong>Export to host</strong> later after choosing Not yet.</p>
+
+            <h4>Example export</h4>
+            <p>One row per document, with the reviewed values winning over the model's:</p>
+            <pre class="info-csv"><code>Document ID,Title,Transcription,Document Type,Date,Author(s),
+Recipient(s),Name(s) Mentioned,Subjects,Image Filename(s),Places,Editors Notes,Submitted by
+
+B0012AAA,"[B0012AAA], Letter from Ada Lovell to Henry Marsh, March 20th, 1901",
+"Dear Sir, The plates arrived in good order...",Letter,1901-03-20,
+"Lovell, Ada","Marsh, Henry",,Shipping,0000_B0012_Page_01.jpg,
+"Albany, NY",,Alice Editor</code></pre>
+          </div>
+
+          <!-- Cost -->
+          <h4>What costs money</h4>
+          <p>Uploading, browsing, reviewing, and exporting are all free.
+            <strong>Splitting</strong> and <strong>drafting</strong> both make real model calls —
+            splitting asks where each document begins, drafting produces the transcription and the
+            catalogue record. Each is checked against the <strong>Max total cost</strong> setting
+            before it runs — once all-time spend hits the cap, drafting stops on its own. Adjust the
+            cap and per-click batch sizes on the <strong>Settings</strong> tab.</p>
+
+          <!-- Devices / data locality -->
+          <h4>Working across devices</h4>
+          <p>The site runs on its own server and behaves the same from every device:</p>
+          <ul class="info-bullets">
+            <li><strong>Uploads</strong> from any device land in the site's storage, never on your
+              laptop or phone.</li>
+            <li><strong>Exports</strong> are built on the server, where an <span data-term="admin" data-case="lower">admin</span> downloads them.</li>
+            <li><strong>Edits</strong> (titles, IDs, review decisions) are saved instantly, so
+              everyone sees the same state.</li>
+          </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="comment-peek" class="comment-peek hidden" role="dialog" aria-modal="true"
+       aria-labelledby="comment-peek-title">
+    <div class="comment-peek-card">
+      <div class="comment-peek-head">
+        <h3 id="comment-peek-title">Comments</h3>
+        <button id="comment-peek-close" class="icon-btn" aria-label="Close">&times;</button>
+      </div>
+      <div id="comment-peek-doc" class="comment-peek-doc"></div>
+      <div id="comment-peek-list" class="comment-peek-list"></div>
+      <div class="comment-peek-foot">
+        <button id="comment-peek-open" class="btn btn-secondary btn-small">Open the document</button>
+      </div>
+    </div>
+  </div>
+  <!-- The site's public settings, written in by the server so labels and names never flash. -->
+  <script>window.__SITE__ = {{SITE_JSON}};</script>
+  <script src="terms.js"></script>
+  <script src="history.js"></script>
+  <script src="folder_exports.js"></script>
+  <script src="page-kit.js"></script>
+  <script src="review_fields.js"></script>
+  <script src="app.js"></script>
+  <script src="prompt_builder.js"></script>
+  <script src="tabs_admin.js"></script>
+  <script src="access.js"></script>
+  <script src="models.js"></script>
+  <script src="backups.js"></script>
+  <script src="updates.js"></script>
+  <script src="login-backdrop.js"></script>
+  <script src="appearance.js"></script>
+  <script src="people.js"></script>
+  <script src="workspace.js"></script>
+  <!-- Last: it drives the document screen through the hook app.js publishes on load. -->
+  <script src="autosave.js"></script>
+</body>
+</html>

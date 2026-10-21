@@ -1,0 +1,68 @@
+# Runs the suite on every push, in a clean checkout.
+#
+# The clean checkout is half the point. A test once wrote `no/such/share/a.txt` into the working
+# directory and it was committed, because the only place the suite ever ran was a machine where
+# that file already existed and looked like everything else.
+#
+# The test extra intentionally contains everything CI needs; unsupported model runtimes do not
+# belong in the core environment.
+
+stages: [test]
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths: [.pip-cache]
+
+test:
+  stage: test
+  image: python:3.12-slim
+  # A shared runner is several times slower than a developer's machine at the image work this
+  # suite does, and the default hour is what the run silently hit once. Explicit, so a run that
+  # genuinely hangs fails as a timeout rather than looking like a slow pass.
+  timeout: 45m
+  before_script:
+    # node: several test files execute app.js under node rather than string-matching it, because a
+    # renderer that looks right and produces the wrong markup is exactly what grep cannot catch.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git nodejs
+    - python -m pip install --quiet --upgrade pip
+    # requirements.txt, not ".[dev]": it carries -c constraints.txt, so CI installs exactly the
+    # versions the workstation does rather than resolving the declared ranges afresh every run.
+    - python -m pip install --quiet -r requirements.txt
+  script:
+    # The three checks that cost seconds and catch what the suite cannot: a file that does not
+    # compile, a name that does not exist on a branch no test takes, and JavaScript that never
+    # parses. app.js and workspace.js are the review UI; a syntax error in either empties the queue
+    # for everyone, and that has happened.
+    - python -m compileall -q src scripts
+    - python -m pyflakes src scripts tests
+    - node --check app/static/app.js
+    - node --check app/static/workspace.js
+    - node --check app/static/folder_exports.js
+    - node --check app/static/history.js
+    - node --check app/static/autosave.js
+    # -n auto: one worker per available core. The suite is order-independent by design and every
+    # test writes under its own tmp_path, so distributing per test (the default) is safe and
+    # balances far better than per file -- two files hold most of the slow tests.
+    # -ra prints a summary of every non-passing test at the end of the log, and the JUnit report
+    # fills GitLab's own Tests tab -- a failed run that says only "job failed" costs a round trip
+    # to find out which test it was.
+    - python -m pytest -q -p no:randomly -n auto -ra --junitxml=report.xml
+    # The suite must not write into the repository. This is the check that would have caught the
+    # committed directory above. .pip-cache and report.xml are CI's own and never in a
+    # developer's tree.
+    - |
+      dirty="$(git status --porcelain -- . ':!.pip-cache' ':!report.xml')"
+      if [ -n "$dirty" ]; then
+        echo "the test run wrote into the repository:"; echo "$dirty"; exit 1
+      fi
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID

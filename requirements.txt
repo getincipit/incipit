@@ -1,0 +1,9 @@
+# Full developer installation. Dependency ownership lives
+# in pyproject.toml so a normal `pip install .` is a complete, runnable core installation too.
+#
+# -c constraints.txt pins the whole resolved closure to the versions this project is known to work
+# at. pyproject.toml's ranges are a library's contract; a deployment wants one answer, so that the
+# workstation, a fresh checkout and CI all install the same thing. Regenerate the pins with
+# scripts/refresh_constraints.py after a deliberate upgrade, then run the suite.
+-c constraints.txt
+-e .[dev]

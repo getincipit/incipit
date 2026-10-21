@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.folder-upload-locks/
+
+# Secrets: never commit real API keys; .env.example documents the variable names
+.env
+
+# Local Claude Code settings (machine-specific, not shared project config)
+.claude/settings.local.json
+
+# Generated ingest/transcription output — bucket contents, the extraction DB,
+# the discover/extract work-queue CSV, and transcription JSON are pipeline output, not source;
+# keep placeholders only. Everything generated lives under data/ (see README's "Data layout").
+data/bucket/*
+!data/bucket/.gitkeep
+data/*.db
+# SQLite's WAL sidecars. They appear whenever the review server is running and hold committed rows
+# that are not yet in the .db file -- so they are database content, and committing one would put
+# real transcriptions in the repository.
+data/*.db-wal
+data/*.db-shm
+*.db
+data/documents.csv
+data/outputs/*
+!data/outputs/.gitkeep
+data/outputs_new/*
+!data/outputs_new/.gitkeep
+data/export/*
+data/exports/
+data/recovery/
+# Throwaway preview sites seeded for a browser check, with their generated test passwords.
+data/*-preview/
+
+# Runtime server output -- regenerated on every start, and tracked by mistake once
+# (`git add -A` swept it in). Tracking it makes every deployment host conflict on pull.
+data/*.log
+
+# Backup snapshots. Default destination is inside the repo because there is no second drive
+# yet -- at a 15-minute cadence that is 96 new files a day, none of which belong in git.
+# Override the location with INCIPIT_BACKUP_DIR in .env once a real drive exists.
+backups/
+!data/export/.gitkeep
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Review server logs written by deploy/run-review.ps1 -- runtime output, per-machine.
+deploy/logs/
+
+# The packaged app and its intermediates (scripts/build_app.py, scripts/build_icons.py).
+build/
+dist/
+build-app.log
