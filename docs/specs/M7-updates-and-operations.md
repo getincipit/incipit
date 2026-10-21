@@ -139,3 +139,6 @@ Complete. Releases are published to GitHub (`parthaped/incipit`, user decision 2
 `https://github.com/parthaped/incipit/releases/latest/download/latest.json` into the build, compiles
 the installer, writes `latest.json` with its size and SHA-256, and creates the release with both as
 assets; GitHub's "latest release" link means installed copies always read the newest feed.
+v0.1.0 was published this way on 2026-10-21; read through the live feed it reported "up to date"
+against itself, and the published installer downloaded and passed the size and SHA-256 check,
+byte-identical to the local build.
