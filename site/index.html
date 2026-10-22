@@ -45,23 +45,61 @@
       <p class="mono-line rise" data-version>Windows 10+ (x64)</p>
     </div>
 
-    <figure class="hero-screen rise">
-      <video class="hero-video" autoplay muted loop playsinline preload="metadata" width="1440" height="900"
-        poster="screens/hero-poster-dark.webp"
-        aria-label="The review screen at work: an owner opens a folder, opens a handwritten letter, corrects the author's name and marks the letter reviewed.">
-        <source src="hero.webm" type="video/webm">
-        <source src="hero.mp4" type="video/mp4">
-        <img src="screens/hero-poster-dark.webp" width="1440" height="900" alt="The review screen: a scanned letter on the left, its drafted transcription and catalogue fields on the right.">
-      </video>
-      <button class="hero-pause" type="button" aria-pressed="false" aria-label="Pause the recording" data-hero-pause>
+    <div class="desk-wrap rise" role="img" aria-label="Six real documents from the Thomas A. Edison Papers go into Incipit, and a handwritten letter comes out transcribed.">
+      <div class="desk" id="desk">
+        <div class="window" aria-hidden="true">
+          <div class="window-bar"><img src="logo.svg" alt="" class="pen"><span>ncipit</span><span class="window-crumb">Miller family papers &middot; X018C9</span></div>
+          <div class="window-body">
+            <div class="queue">
+              <div class="queue-head">Queue</div>
+              <div class="queue-row" data-row="letter"><span class="queue-id">0915</span>Letter &middot; 1911</div>
+              <div class="queue-row" data-row="letter-2"><span class="queue-id">0939</span>Letter &middot; 1913</div>
+              <div class="queue-row" data-row="sketch"><span class="queue-id">NP001</span>Sketch &middot; 1869</div>
+              <div class="queue-row" data-row="notebook"><span class="queue-id">NP001</span>Notebook &middot; 1870</div>
+              <div class="queue-row" data-row="minutes"><span class="queue-id">E1259CF</span>Minutes &middot; 1912</div>
+              <div class="queue-row" data-row="report"><span class="queue-id">E1259CM</span>Report &middot; 1912</div>
+            </div>
+            <div class="scan-pane"><div class="scan-caption">Page 1 &middot; 0915</div></div>
+            <div class="draft-pane">
+              <div class="draft-title">[X018C9-0915], Letter from Mary Emily Miller to Mina Miller Edison, March 5th, 1911</div>
+              <div class="fields">
+                <div class="field"><span>Author</span><b data-field>Miller, Mary Emily</b></div>
+                <div class="field"><span>Recipient</span><b data-field>Edison, Mina Miller (Mrs Thomas A.)</b></div>
+                <div class="field"><span>Date</span><b data-field>1911-03-05</b></div>
+                <div class="field"><span>Type</span><b data-field>Letter</b></div>
+              </div>
+              <div class="draft-label">Transcription</div>
+              <div class="draft-text" id="draft-text"></div>
+              <div class="draft-done" data-done><span class="tick">&#10003;</span>Ready to review</div>
+            </div>
+          </div>
+        </div>
+        <img class="doc" data-doc="letter-2" src="documents/letter-2.webp" alt="" width="720" height="418"
+          style="--x0:230px;--y0:470px;--r0:6deg;--s0:1;--x1:489px;--y1:184px;--r1:0deg;--s1:.11;--d:2s">
+        <img class="doc" data-doc="sketch" src="documents/sketch.webp" alt="" width="720" height="536"
+          style="--x0:230px;--y0:24px;--r0:4deg;--s0:1.2;--x1:489px;--y1:217px;--r1:0deg;--s1:.11;--d:2.15s">
+        <img class="doc" data-doc="notebook" src="documents/notebook.webp" alt="" width="720" height="968"
+          style="--x0:30px;--y0:320px;--r0:-5deg;--s0:1;--x1:489px;--y1:244px;--r1:0deg;--s1:.11;--d:2.3s">
+        <img class="doc" data-doc="minutes" src="documents/minutes.webp" alt="" width="720" height="909"
+          style="--x0:250px;--y0:220px;--r0:7deg;--s0:1.1;--x1:489px;--y1:279px;--r1:0deg;--s1:.11;--d:2.45s">
+        <img class="doc" data-doc="report" src="documents/report.webp" alt="" width="720" height="922"
+          style="--x0:280px;--y0:330px;--r0:-6deg;--s0:1;--x1:489px;--y1:313px;--r1:0deg;--s1:.11;--d:2.6s">
+        <img class="doc" data-doc="letter" src="documents/letter.webp" alt="" width="720" height="816"
+          style="--x0:40px;--y0:50px;--r0:-9deg;--s0:1.3;--x1:660px;--y1:115px;--r1:0deg;--s1:1.46;--d:2.8s">
+      </div>
+      <button class="hero-pause" type="button" aria-pressed="false" aria-label="Pause the animation" data-hero-pause>
         <svg class="icon-pause" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg>
         <svg class="icon-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
       </button>
-      <figcaption class="hero-caption">
-        <span class="display-2">Scan on the left. Draft on the right. Decide.</span>
-        <span class="mono-line credit">The letter is real: <span data-credits></span>, from the <a href="https://edisondigital.rutgers.edu/">Thomas A. Edison Papers</a> at Rutgers University, published under CC0. Its transcription was made by hand.</span>
-      </figcaption>
-    </figure>
+    </div>
+    <p class="credit mono-line">The documents are real, from the <a href="https://edisondigital.rutgers.edu/">Thomas A. Edison Papers</a>
+      at Rutgers University, published under CC0: <span data-credits></span></p>
+  </section>
+
+  <section class="showcase">
+    <p class="eyebrow reveal">The review screen</p>
+    <h2 class="display-2 reveal">Scan on the left. Draft on the right. Decide.</h2>
+    <figure class="frame wide reveal"><img src="screens/review-dark.webp" width="1440" height="900" alt="The review screen: a scanned letter on the left, its drafted transcription and catalogue fields on the right."></figure>
   </section>
 
   <section class="start" id="start">

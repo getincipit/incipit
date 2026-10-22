@@ -68,29 +68,26 @@ def main() -> int:
                               f"{before} -> {after}")
                     checks.ok("4 the name section says where the name comes from",
                               "here begins" in page.inner_text("#name"))
-                    # The hero: the recording of the real review screen plays, and the letter is credited.
-                    page.evaluate("window.scrollTo(0, 0)")
-                    page.wait_for_function("document.querySelector('.hero-video').readyState >= 2", timeout=20000)
-                    before = page.evaluate("document.querySelector('.hero-video').currentTime")
-                    time.sleep(1.5)
-                    after = page.evaluate("document.querySelector('.hero-video').currentTime")
-                    checks.ok("6 the hero's recording plays and the letter is credited",
-                              after > before and page.eval_on_selector_all("[data-credits] a", "els => els.length") == 1)
+                    # The hero: six real documents settle into the window and the letter is typed out.
+                    page.wait_for_selector(".desk.settled", timeout=20000)
+                    checks.ok("6 the hero ends with the letter transcribed and the documents in the queue",
+                              page.inner_text("#draft-text").startswith("Mina darling")
+                              and page.eval_on_selector_all(".doc", "els => els.length") == 6
+                              and page.eval_on_selector_all("[data-credits] a", "els => els.length") == 6)
                     page.click("[data-hero-pause]")
-                    time.sleep(0.3)
-                    held = page.evaluate("document.querySelector('.hero-video').paused")
+                    held = page.evaluate("document.querySelector('.desk').classList.contains('held')")
                     page.click("[data-hero-pause]")
-                    time.sleep(0.5)
-                    checks.ok("6 the recording stops on its button and starts again",
-                              held and not page.evaluate("document.querySelector('.hero-video').paused"))
+                    checks.ok("6 the animation holds still on its button and goes on again",
+                              held and not page.evaluate("document.querySelector('.desk').classList.contains('held')"))
                 context.close()
         context = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
         page = context.new_page()
         page.goto(url, wait_until="networkidle")
         hidden = page.evaluate("[...document.querySelectorAll('.reveal, .rise, .rise-late')].filter((el) => getComputedStyle(el).opacity !== '1').length")
         checks.ok("5 with reduced motion every section shows without scrolling", hidden == 0, f"{hidden} hidden")
-        checks.ok("5 with reduced motion the recording stands still on its poster",
-                  page.evaluate("const v = document.querySelector('.hero-video'); v.paused && !v.hasAttribute('autoplay')"))
+        checks.ok("5 with reduced motion the hero is already at rest, transcribed",
+                  page.evaluate("document.querySelector('.desk').classList.contains('settled')")
+                  and page.inner_text("#draft-text").startswith("Mina darling"))
         context.close()
         browser.close()
     server.shutdown()

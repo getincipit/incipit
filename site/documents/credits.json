@@ -9,5 +9,60 @@
     "license": "CC0 1.0",
     "width": 720,
     "height": 816
+  },
+  {
+    "key": "letter-2",
+    "kind": "Handwritten letter",
+    "title": "Mary Emily Miller to Mina Miller Edison",
+    "date": "September 1913",
+    "link": "https://edisondigital.rutgers.edu/document/X018C9-0939",
+    "credit": "Thomas A. Edison Papers, Rutgers University",
+    "license": "CC0 1.0",
+    "width": 720,
+    "height": 418
+  },
+  {
+    "key": "sketch",
+    "kind": "Notebook sketch",
+    "title": "Pocket notebook PN-69-08-08: a polarised telegraph repeater",
+    "date": "1867\u20131871",
+    "link": "https://edisondigital.rutgers.edu/notebook/NP001",
+    "credit": "Thomas A. Edison Papers, Rutgers University",
+    "license": "CC0 1.0",
+    "width": 720,
+    "height": 536
+  },
+  {
+    "key": "notebook",
+    "kind": "Notebook page",
+    "title": "Pocket notebook PN-69-08-08: accounts and a land purchase",
+    "date": "January 1870",
+    "link": "https://edisondigital.rutgers.edu/notebook/NP001",
+    "credit": "Thomas A. Edison Papers, Rutgers University",
+    "license": "CC0 1.0",
+    "width": 720,
+    "height": 968
+  },
+  {
+    "key": "minutes",
+    "kind": "Typed minutes",
+    "title": "Home Kinetoscope Sales and Advertising Committee",
+    "date": "15 November 1912",
+    "link": "https://edisondigital.rutgers.edu/document/E1259CF",
+    "credit": "Thomas A. Edison Papers, Rutgers University",
+    "license": "CC0 1.0",
+    "width": 720,
+    "height": 909
+  },
+  {
+    "key": "report",
+    "kind": "Typed report",
+    "title": "Cost of negative film subjects, Bronx studio",
+    "date": "November 1912",
+    "link": "https://edisondigital.rutgers.edu/document/E1259CM",
+    "credit": "Thomas A. Edison Papers, Rutgers University",
+    "license": "CC0 1.0",
+    "width": 720,
+    "height": 922
   }
 ]

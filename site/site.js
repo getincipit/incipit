@@ -34,36 +34,72 @@
     show(steps[0].dataset.screen);
   }
 
-  // The hero: the recorded review screen loops; with reduced motion the poster stands alone.
-  const heroVideo = document.querySelector(".hero-video");
-  const heroPause = document.querySelector("[data-hero-pause]");
-  // Once someone has stopped it, nothing starts it again but their own press.
+  // The hero: the desk is designed at 1200 by 720 (--design) and scaled to its box; the documents settle into the
+  // window, then the letter is typed out, as a draft arrives in the program.
+  const desk = document.getElementById("desk");
+  const LETTER = [
+    "Mina darling\u2014",
+    "Thank you for your lovely letters and the invitations. I know they are real, that you really want me to come.",
+    "I am much better now. I am going to Battle Creek Sunday. Lewis goes with me. I'll stay a couple of weeks. My doctor wants me to come.",
+  ].join("\n\n");
+  function fitDesk() {
+    if (!desk) return;
+    const wrap = desk.parentElement;
+    const design = parseFloat(getComputedStyle(wrap).getPropertyValue("--design")) || 1200;
+    desk.style.setProperty("--scale", String(wrap.getBoundingClientRect().width / design));
+  }
+  // Anyone can hold the showing still: the documents stop where they are, the typing waits, and
+  // every step scheduled while held runs once it is let go.
   let heroHeld = false;
-  function showHeroState() {
-    if (!heroPause || !heroVideo) return;
-    const paused = heroVideo.paused;
-    heroPause.setAttribute("aria-pressed", String(paused));
-    heroPause.setAttribute("aria-label", paused ? "Play the recording" : "Pause the recording");
+  const heroPause = document.querySelector("[data-hero-pause]");
+  function later(fn, ms) {
+    setTimeout(() => (heroHeld ? later(fn, 150) : fn()), ms);
   }
-  if (heroVideo && still) {
-    heroVideo.removeAttribute("autoplay");
-    heroVideo.pause();
-    heroHeld = true;
-  } else if (heroVideo && "IntersectionObserver" in window) {
-    // Browsers pause a muted loop once it has scrolled away; it plays again when it comes back.
-    new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (e.isIntersecting && !heroHeld) heroVideo.play().catch(() => {});
-      else if (!e.isIntersecting) heroVideo.pause();
-    }), { threshold: 0.2 }).observe(heroVideo);
+  function showHeld() {
+    if (!heroPause) return;
+    heroPause.setAttribute("aria-pressed", String(heroHeld));
+    heroPause.setAttribute("aria-label", heroHeld ? "Play the animation" : "Pause the animation");
+    desk.classList.toggle("held", heroHeld);
   }
-  if (heroVideo && heroPause) {
-    heroPause.addEventListener("click", () => {
-      heroHeld = !heroVideo.paused;
-      if (heroVideo.paused) heroVideo.play().catch(() => {}); else heroVideo.pause();
-    });
-    heroVideo.addEventListener("play", showHeroState);
-    heroVideo.addEventListener("pause", showHeroState);
-    showHeroState();
+  if (heroPause && desk) heroPause.addEventListener("click", () => { heroHeld = !heroHeld; showHeld(); });
+  function typeLetter(instant, done) {
+    const out = document.getElementById("draft-text");
+    if (!out) return;
+    if (instant) { out.textContent = LETTER; out.classList.add("done"); desk.classList.add("landed", "settled"); return; }
+    let i = 0;
+    const tick = () => {
+      i += 1;
+      out.textContent = LETTER.slice(0, i);
+      if (i < LETTER.length) later(tick, LETTER[i - 1] === "\n" ? 200 : 18);
+      else { out.classList.add("done"); desk.classList.add("settled"); if (done) done(); }
+    };
+    tick();
+  }
+  // One showing: the pile, the settle, the slide to the middle, the typing; then, after a pause, the
+  // desk fades and the showing begins again.
+  function play() {
+    desk.classList.add("play");
+    later(() => desk.classList.add("landed"), 4000);
+    later(() => typeLetter(false, () => later(replay, 5000)), 4200);
+  }
+  function replay() {
+    desk.classList.add("resetting");
+    later(() => {
+      const out = document.getElementById("draft-text");
+      desk.classList.remove("play", "landed", "settled");
+      out.textContent = "";
+      out.classList.remove("done");
+      // A reflow between removing and adding the class, or the browser never restarts the animations.
+      void desk.offsetWidth;
+      desk.classList.remove("resetting");
+      play();
+    }, 700);
+  }
+  if (desk) {
+    fitDesk();
+    window.addEventListener("resize", fitDesk);
+    if (still) { heroHeld = true; showHeld(); typeLetter(true); }
+    else play();
   }
 
   // The documents' credits, from the file the fetch script writes.
@@ -71,7 +107,7 @@
     const el = document.querySelector("[data-credits]");
     if (!el) return;
     const esc = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-    el.innerHTML = credits.map((c) => `<a href="${esc(c.link)}">${esc(c.title)}, ${esc(c.date)}</a>`).join(" · ");
+    el.innerHTML = credits.map((c) => `<a href="${esc(c.link)}" title="${esc(c.title)}">${esc(c.kind)}, ${esc(c.date)}</a>`).join(" · ");
   }).catch(() => {});
 
   // The estimator answers as its numbers change.

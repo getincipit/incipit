@@ -21,10 +21,10 @@ real program, an estimator of the time it saves, and the download.
   wizard, each in light and dark. Re-running it regenerates them, so the page cannot drift from
   the product.
 - **Sections.** Hero (the headline, the download button, the Windows line in monospace, then the
-  program itself: a recording of the real review screen, made by `scripts/record_hero.py` in a real
-  browser against the same demo site the screenshots come from, in which an owner opens a folder,
-  opens a real handwritten letter from the Thomas A. Edison Papers (CC0, credited under it), corrects
-  the author's name and marks it reviewed; with reduced motion its poster stands still) · From scans to a finished folder (the screens follow the copy as it scrolls: upload,
+  stage: six real documents from the Thomas A. Edison Papers' public edition, fetched by
+  `scripts/fetch_documents.py` and credited under the stage, lie scattered on a table, settle one by
+  one into a stylised Incipit window, and the handwritten letter among them is typed out as a draft
+  with its fields filled) · From scans to a finished folder (the screens follow the copy as it scrolls: upload,
   split, draft, review, export) · Review instead of transcribe · A prompt that knows your period ·
   Your team · On your own computer (one install, the data in a folder you choose, backups, reaching
   it from outside, updates) · Time, end to end (the estimator) · The name · Download (requirements,
@@ -51,7 +51,7 @@ translations.
 
 - AC-1: `site/index.html` has the hero with the logo, a one-sentence description and a download button, and sections for the workflow, reviewing, the prompt, the team, running on your own computer, the estimator, the name and the download.
 - AC-2: The name section says where "Incipit" comes from: Latin for "here begins", the opening words by which a text was known and catalogued before titles were usual.
-- AC-3: The page is dark by design; every screenshot it shows is a dark capture from the real program by `scripts/capture_screens.py` (light captures are made too, for the README and other uses); the hero is a recording of the real program by `scripts/record_hero.py`, and the letter it reviews is a real page from a public-domain edition, fetched by `scripts/fetch_documents.py`, which refuses anything not published under CC0, and credited on the page with a link to its edition page.
+- AC-3: The page is dark by design; every screenshot it shows is a dark capture from the real program by `scripts/capture_screens.py` (light captures are made too, for the README and other uses), and every document in the hero is a real page from a public-domain edition, fetched by `scripts/fetch_documents.py`, which refuses anything not published under CC0, and credited on the page with a link to its edition page.
 - AC-4: The estimator keeps people time, machine time and model cost apart, never sums people and machine time into one figure, labels every default as an assumption, and computes them as its formulas say (node-tested).
 - AC-5: The download button leads to the newest GitHub release; the page shows the newest version, date and notes from GitHub's API and falls back to the releases page when the API cannot be reached.
 - AC-6: The page loads no script, style or font from another site, uses no analytics, and every local file it references exists.
@@ -134,12 +134,10 @@ section is visible without scrolling into it and the hero is already at rest.
 - The estimator's formulas live once, in `estimator.js`, used by the page and tested by node.
 - Found and fixed along the way: the Team tab had left a split being confirmed drawn beneath it
   (`workspace.js`, with a regression test).
-- **The hero became the program itself, recorded** (user direction 2026-10-22). The stylised window
-  with the six documents settling into it was dropped: it was not the true UI, and its sticky
-  stage clipped on some screens. `scripts/record_hero.py` builds the same demo site as the
-  screenshots, adds the real Miller letter as its own folder drafted from a transcription made by
-  hand, and records Chromium while an owner opens the folder, opens the letter, corrects the
-  author's name and marks it reviewed; ffmpeg encodes `hero.mp4` (H.264) and `hero.webm` (VP9), and
-  the last frame is the poster. The separate "review screen" section is gone, since the hero now
-  shows it. `publish_site.py` appends the commit to the page's asset links, because GitHub's
-  ten-minute cache once drew a new page with the old stylesheet.
+- **A recording of the real screen was tried and set aside** (2026-10-22). For one release the hero
+  was a Chromium recording of the review screen at work on the Miller letter; its quality on the page
+  was judged too low, and the drawn stage with the six documents returned, resized so the window
+  holds exactly its content (880 by 470 units on a 1200 by 600 desk) with nothing empty beneath the
+  page or the draft, and the "review screen" section back beneath it. The review that recording
+  prompted stays: a pause control on the hero, asset links versioned by content, and the export
+  prompt naming the folder as people know it.

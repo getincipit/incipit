@@ -31,11 +31,11 @@ def git(*args, cwd: Path) -> str:
 
 
 def stamp_assets(page: Path) -> None:
-    """Appends ?v=<hash of the file> to the page's own stylesheet, script, video and poster links:
+    """Appends ?v=<hash of the file> to the page's own stylesheet and script links:
     GitHub's cache keeps a file for ten minutes, and a new page drawn with an old stylesheet once
     broke the hero. The hash, not the commit, so a publish of unsaved work still gets new addresses."""
     html = page.read_text(encoding="utf-8")
-    for name in ("site.css", "site.js", "hero.webm", "hero.mp4", "screens/hero-poster-dark.webp"):
+    for name in ("site.css", "site.js", "estimator.js"):
         digest = hashlib.sha256((page.parent / name).read_bytes()).hexdigest()[:10]
         html = html.replace(f'"{name}"', f'"{name}?v={digest}"')
     page.write_text(html, encoding="utf-8")

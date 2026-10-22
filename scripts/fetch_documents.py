@@ -25,10 +25,21 @@ EDITION = "https://edisondigital.rutgers.edu"
 CREDIT = "Thomas A. Edison Papers, Rutgers University"
 WIDTH = 720
 
-# The document the page shows: the handwritten letter the hero recording reviews.
+# The documents the page shows: a handwritten letter the animation transcribes, a second letter,
+# two pages of an 1867-71 pocket notebook (a telegraph sketch and accounts), typed minutes, a report.
 DOCUMENTS = [
     {"key": "letter", "id": "X018C9-0915", "page": 0, "kind": "Handwritten letter",
      "title": "Mary Emily Miller to Mina Miller Edison", "date": "5 March 1911"},
+    {"key": "letter-2", "id": "X018C9-0939", "page": 0, "kind": "Handwritten letter",
+     "title": "Mary Emily Miller to Mina Miller Edison", "date": "September 1913"},
+    {"key": "sketch", "notebook": "NP001", "canvas": 10, "kind": "Notebook sketch",
+     "title": "Pocket notebook PN-69-08-08: a polarised telegraph repeater", "date": "1867–1871"},
+    {"key": "notebook", "notebook": "NP001", "canvas": 2, "kind": "Notebook page",
+     "title": "Pocket notebook PN-69-08-08: accounts and a land purchase", "date": "January 1870"},
+    {"key": "minutes", "id": "E1259CF", "page": 0, "kind": "Typed minutes",
+     "title": "Home Kinetoscope Sales and Advertising Committee", "date": "15 November 1912"},
+    {"key": "report", "id": "E1259CM", "page": 0, "kind": "Typed report",
+     "title": "Cost of negative film subjects, Bronx studio", "date": "November 1912"},
 ]
 NOTEBOOK_SERVICE = ("https://iiif.archive.org/image/iiif/3/taepnotebook-{nb}%2Ftaepnotebook-{nb}_jp2.zip"
                     "%2Ftaepnotebook-{nb}_jp2%2Ftaepnotebook-{nb}_{canvas:04d}.jp2/full/{width},/0/default.jpg")
