@@ -90,20 +90,22 @@ section { padding: 128px 24px; }
 
 /* Designed at 1200 by 720 and scaled to the width it is given (site.js sets --scale), so every
    distance in the animation is a plain number. */
-.desk-wrap { --design: 1200; --shift: -235px; max-width: 1240px; margin: 56px auto 0; aspect-ratio: 5 / 3; border-radius: 28px; overflow: hidden; border: 1px solid var(--hairline);
+.desk-wrap { --design: 1200; --shift: -310px; max-width: 1240px; margin: 56px auto 0; aspect-ratio: 15 / 8; border-radius: 28px; overflow: hidden; border: 1px solid var(--hairline);
   background: radial-gradient(120% 90% at 70% 20%, #1c1a16 0%, #0e0e0f 55%, #0b0b0c 100%); position: relative; }
-.desk { position: absolute; left: 0; top: 0; width: 1200px; height: 720px; transform-origin: 0 0; transform: scale(var(--scale, 1)); }
+.desk { position: absolute; left: 0; top: 0; width: 1200px; height: 640px; transform-origin: 0 0; transform: scale(var(--scale, 1)); }
 /* Once the table is cleared the window comes to the middle; the shift is in desk units, before the scale. */
-.desk { transition: transform 1.4s var(--ease); }
+.desk { transition: transform 1.4s var(--ease), opacity 0.6s var(--ease); }
+/* Between one showing and the next the desk fades, so the documents do not jump back to the pile. */
+.desk.resetting { opacity: 0; transition: opacity 0.6s var(--ease); }
 .desk.landed { transform: scale(var(--scale, 1)) translateX(var(--shift)); }
 
-.window { position: absolute; left: 470px; top: 60px; width: 690px; height: 600px; border-radius: 16px; background: #141416;
+.window { position: absolute; left: 470px; top: 60px; width: 880px; height: 520px; border-radius: 16px; background: #141416;
   border: 1px solid var(--hairline-strong); box-shadow: var(--shadow), var(--glow); overflow: hidden; display: flex; flex-direction: column;
   font-size: 12px; color: var(--text); text-align: left; }
 .window-bar { height: 40px; display: flex; align-items: center; gap: 2px; padding: 0 16px; border-bottom: 1px solid var(--hairline); font-family: var(--serif); font-size: 17px; color: var(--paper); }
 .window-bar .pen { height: 20px; width: auto; transform: translateY(-1px); }
 .window-crumb { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--dim); }
-.window-body { flex: 1; display: grid; grid-template-columns: 176px 230px minmax(0, 1fr); min-height: 0; }
+.window-body { flex: 1; display: grid; grid-template-columns: 176px 320px minmax(0, 1fr); min-height: 0; }
 .queue { border-right: 1px solid var(--hairline); padding: 12px 10px; }
 .queue-head { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin: 2px 6px 10px; }
 .queue-row { height: 34px; display: flex; align-items: center; gap: 7px; padding: 0 6px 0 40px; border-radius: 8px; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; opacity: 0; }
@@ -112,7 +114,7 @@ section { padding: 128px 24px; }
 .queue-row[data-row="letter"]::before { content: ""; position: absolute; left: 8px; top: 5px; width: 22px; height: 25px; border-radius: 2px; background: url(documents/letter.webp) center top / cover; }
 .queue-id { font-family: var(--mono); font-size: 10px; color: var(--dim); }
 .scan-pane { background: #0d0d0e; border-right: 1px solid var(--hairline); position: relative; }
-.scan-caption { position: absolute; left: 14px; top: 358px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+.scan-caption { position: absolute; left: 14px; top: 462px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
 .draft-pane { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; overflow: hidden; }
 .draft-title { font-weight: 600; font-size: 13px; line-height: 1.35; color: var(--paper); }
 .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
@@ -265,7 +267,7 @@ section { padding: 128px 24px; }
   .nav-inner .button { margin-left: auto; }
   .hero { padding: 48px 16px 0; }
   /* A phone frames the window alone (760 desk units wide); the pile arrives from beyond its left edge. */
-  .desk-wrap { --design: 760; --shift: -435px; aspect-ratio: 19 / 18; margin-top: 36px; border-radius: 16px; }
+  .desk-wrap { --design: 940; --shift: -440px; aspect-ratio: 47 / 32; margin-top: 36px; border-radius: 16px; }
   .js .desk { transform: scale(var(--scale, 1)) translateX(var(--shift)); }
   .credit { font-size: 11px; }
   .showcase { padding-top: 72px; }

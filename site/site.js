@@ -48,7 +48,7 @@
     const design = parseFloat(getComputedStyle(wrap).getPropertyValue("--design")) || 1200;
     desk.style.setProperty("--scale", String(wrap.getBoundingClientRect().width / design));
   }
-  function typeLetter(instant) {
+  function typeLetter(instant, done) {
     const out = document.getElementById("draft-text");
     if (!out) return;
     if (instant) { out.textContent = LETTER; out.classList.add("done"); desk.classList.add("landed", "settled"); return; }
@@ -57,19 +57,35 @@
       i += 1;
       out.textContent = LETTER.slice(0, i);
       if (i < LETTER.length) setTimeout(tick, LETTER[i - 1] === "\n" ? 200 : 18);
-      else { out.classList.add("done"); desk.classList.add("settled"); }
+      else { out.classList.add("done"); desk.classList.add("settled"); if (done) done(); }
     };
     tick();
+  }
+  // One showing: the pile, the settle, the slide to the middle, the typing; then, after a pause, the
+  // desk fades and the showing begins again.
+  function play() {
+    desk.classList.add("play");
+    setTimeout(() => desk.classList.add("landed"), 4000);
+    setTimeout(() => typeLetter(false, () => setTimeout(replay, 5000)), 4200);
+  }
+  function replay() {
+    desk.classList.add("resetting");
+    setTimeout(() => {
+      const out = document.getElementById("draft-text");
+      desk.classList.remove("play", "landed", "settled");
+      out.textContent = "";
+      out.classList.remove("done");
+      // A reflow between removing and adding the class, or the browser never restarts the animations.
+      void desk.offsetWidth;
+      desk.classList.remove("resetting");
+      play();
+    }, 700);
   }
   if (desk) {
     fitDesk();
     window.addEventListener("resize", fitDesk);
     if (still) typeLetter(true);
-    else {
-      desk.classList.add("play");
-      setTimeout(() => desk.classList.add("landed"), 4000);
-      setTimeout(() => typeLetter(false), 4200);
-    }
+    else play();
   }
 
   // The documents' credits, from the file the fetch script writes.
