@@ -31,7 +31,7 @@ REMOVED = re.compile(
     r"notebook_editor\.js",
 )
 BINARY_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".db", ".db-wal", ".db-shm", ".bin",
-                   ".pdf", ".zip", ".sqlite"}
+                   ".pdf", ".zip", ".sqlite", ".webm", ".mp4"}
 
 
 def tracked_files() -> list[Path]:
@@ -49,9 +49,10 @@ def text_files() -> list[Path]:
 
 def generated_image(path: str) -> bool:
     """The download page's pictures: screenshots made by scripts/capture_screens.py from invented material,
-    and the six public-domain documents scripts/fetch_documents.py takes from the published edition (CC0,
-    credited on the page). Never a scan of this installation's own data."""
-    return path.endswith(".webp") and (path.startswith("site/screens/") or path.startswith("site/documents/"))
+    the recording scripts/record_hero.py makes of the real program, and the public-domain letter
+    scripts/fetch_documents.py takes from the published edition (CC0, credited). Never this installation's data."""
+    return (path.endswith(".webp") and (path.startswith("site/screens/") or path.startswith("site/documents/"))
+            or path in ("site/hero.webm", "site/hero.mp4"))
 
 
 def test_ac1_no_scan_database_or_binary_is_in_the_repository():
@@ -81,7 +82,7 @@ ALLOWED_LINES = {
 # Files that name the original project on purpose: the download page shows real documents from its
 # public edition, with credit, and the script that fetches them (user direction 2026-10-21).
 ALLOWED_FILES = {"site/index.html", "site/site.js", "site/documents/credits.json", "scripts/fetch_documents.py",
-                 "tests/test_m8_landing_page.py"}
+                 "scripts/record_hero.py", "tests/test_m8_landing_page.py"}
 
 
 @pytest.mark.parametrize("pattern,label", [(PROPRIETARY, "proprietary"), (REMOVED, "removed")])

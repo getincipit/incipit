@@ -29,12 +29,22 @@ def git(*args, cwd: Path) -> str:
     return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
 
 
+def stamp_assets(page: Path, version: str) -> None:
+    """Appends ?v=<commit> to the page's own stylesheet, script, video and poster links: GitHub's cache
+    keeps a file for ten minutes, and a new page drawn with an old stylesheet once broke the hero."""
+    html = page.read_text(encoding="utf-8")
+    for name in ("site.css", "site.js", "hero.webm", "hero.mp4", "screens/hero-poster-dark.webp"):
+        html = html.replace(f'"{name}"', f'"{name}?v={version}"')
+    page.write_text(html, encoding="utf-8")
+
+
 def publish() -> str:
     build_site.build()
     with tempfile.TemporaryDirectory(prefix="incipit-pages-") as tmp:
         work = Path(tmp) / "pages"
         shutil.copytree(ROOT / "site", work)
         (work / ".nojekyll").write_text("", encoding="utf-8")
+        stamp_assets(work / "index.html", git("rev-parse", "--short", "HEAD", cwd=ROOT))
         git("init", "-q", "-b", BRANCH, cwd=work)
         git("add", "-A", cwd=work)
         git("-c", "user.name=incipit", "-c", "user.email=incipit@users.noreply.github.com", "commit", "-q", "-m",

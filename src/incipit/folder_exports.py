@@ -64,7 +64,9 @@ def completion(conn, workflow, document_id, was_ready):
     """The prompt follows only the review that completed the folder, never an autosave or a re-review."""
     if was_ready or not ready_for(conn, workflow, document_id):
         return None
-    return {"workflow": workflow, "folder_id": scoping.document_folder_id(conn, document_id, workflow)}
+    folder_id = scoping.document_folder_id(conn, document_id, workflow)
+    # The prompt names the folder as people know it; the internal id once showed there (seen 2026-10-22).
+    return {"workflow": workflow, "folder_id": folder_id, "folder_display_id": folder_name(conn, workflow, folder_id)}
 
 
 def fingerprint(conn, workflow, folder_id, items=None):

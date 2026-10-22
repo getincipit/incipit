@@ -186,11 +186,15 @@ class FakeModel(BaseHTTPRequestHandler):
             cost = 0.0011
         else:
             letter = FakeModel.drafts.pop(0) if FakeModel.drafts else LETTERS[0]
-            answer = {"text": transcription(letter), "uncertain_words": ["Cohoes"] if letter is LETTERS[0] else [],
+            # A letter carrying its own text (a real document transcribed by hand) is drafted as given.
+            answer = {"text": letter.get("text") or transcription(letter),
+                      "uncertain_words": ["Cohoes"] if letter is LETTERS[0] else letter.get("uncertain", []),
                       "document_type": letter["type"], "date": letter["date"], "author": letter["author"],
-                      "recipient": letter["recipient"], "place": "Albany, N.Y.",
-                      "names": [letter["author"], letter["recipient"]], "places": ["Albany, N.Y.", letter["place"]],
-                      "subjects": ["Iron castings"], "marginal_notes": [], "challenges": ["typed"]}
+                      "recipient": letter["recipient"], "place": letter.get("written_at", "Albany, N.Y."),
+                      "names": [letter["author"], letter["recipient"]],
+                      "places": letter.get("places", ["Albany, N.Y.", letter["place"]]),
+                      "subjects": letter.get("subjects", ["Iron castings"]), "marginal_notes": [],
+                      "challenges": letter.get("challenges", ["typed"])}
             cost = 0.0019
         self._send({"choices": [{"message": {"content": json.dumps(answer)}, "finish_reason": "stop"}],
                     "usage": {"prompt_tokens": 1500 * max(images, 1), "completion_tokens": 520, "cost": cost}})
@@ -208,6 +212,12 @@ def save(png: bytes, name: str) -> None:
 
 
 def main() -> int:
+    return run(capture)
+
+
+def run(visit) -> int:
+    """Builds the demo site and hands it to `visit(base, folder_id, created, token, swaps)`; the
+    screenshots and the hero recording share one site so the page never shows two different archives."""
     SCREENS.mkdir(parents=True, exist_ok=True)
     model_port = free_port()
     model = ThreadingHTTPServer(("127.0.0.1", model_port), FakeModel)
@@ -285,7 +295,7 @@ def main() -> int:
                           f":{port}": ":8010"})
             if os.environ.get("USERNAME"):
                 swaps[os.environ["USERNAME"]] = "archivist"
-            capture(base, folder_id, created, token, swaps)
+            visit(base, folder_id, created, token, swaps)
         finally:
             server.kill()
             server.wait(timeout=15)

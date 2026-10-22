@@ -34,18 +34,27 @@ def _estimate(inputs: dict) -> dict:
 # ---------- AC-1: the page's parts ----------
 
 
-def test_ac1_the_hero_has_the_headline_the_download_and_the_desk():
+def test_ac1_the_hero_has_the_headline_the_download_and_the_recorded_review_screen():
     hero = PAGE[PAGE.index('<section class="hero">'):PAGE.index("</section>")]
-    assert "Here begins<br>the transcription." in hero and "Download for Windows" in hero and 'id="desk"' in hero
+    assert "Here begins<br>the transcription." in hero and "Download for Windows" in hero
+    assert '<video class="hero-video" autoplay muted loop playsinline' in hero
+    assert 'src="hero.webm"' in hero and 'src="hero.mp4"' in hero and 'poster="screens/hero-poster-dark.webp"' in hero
+    assert "Scan on the left. Draft on the right. Decide." in hero
 
 
-def test_ac1_the_desk_shows_every_fetched_document_and_credits_them():
+def test_ac1_the_recording_its_poster_and_the_letter_it_reviews_exist_and_are_credited():
+    for name in ("hero.webm", "hero.mp4", "screens/hero-poster-dark.webp", "documents/letter.webp"):
+        assert (SITE / name).is_file(), name
     credits = json.loads((SITE / "documents" / "credits.json").read_text(encoding="utf-8"))
-    keys = {c["key"] for c in credits}
-    assert keys == set(re.findall(r'data-doc="([a-z0-9-]+)"', PAGE)) and len(keys) == 6
-    assert all((SITE / "documents" / f"{k}.webp").is_file() for k in keys)
-    assert all(c["license"] == "CC0 1.0" and c["link"].startswith("https://edisondigital.rutgers.edu/") for c in credits)
+    assert [c["key"] for c in credits] == ["letter"]
+    assert credits[0]["license"] == "CC0 1.0" and credits[0]["link"].startswith("https://edisondigital.rutgers.edu/")
     assert "published under CC0" in PAGE and 'data-credits' in PAGE and "documents/credits.json" in SCRIPT
+
+
+def test_ac1_the_recording_is_made_by_the_record_script_from_the_real_program():
+    script = (ROOT / "scripts" / "record_hero.py").read_text(encoding="utf-8")
+    assert "import capture_screens as demo" in script and "record_video_dir" in script and "demo.run(record)" in script
+    assert '"X018C9_0915.jpg"' in script and "#btn-accept" in script
 
 
 def test_ac1_the_fetch_script_refuses_a_document_that_is_not_cc0():
@@ -85,8 +94,11 @@ def test_ac3_the_page_is_dark_and_shows_the_dark_captures():
 
 def test_ac3_every_screenshot_shown_is_one_the_capture_script_makes():
     script = (ROOT / "scripts" / "capture_screens.py").read_text(encoding="utf-8")
+    recorder = (ROOT / "scripts" / "record_hero.py").read_text(encoding="utf-8")
     made = set(re.findall(r'shot\("([a-z-]+)"', script)) | {f"settings-{t}" for t in re.findall(
         r'for tab in \(([^)]*)\)', script)[0].replace('"', "").replace(" ", "").split(",")}
+    # The recording's poster is the one picture the record script saves through the same `save`.
+    made |= set(re.findall(r'demo\.save\(poster, "([a-z-]+)-dark"\)', recorder))
     assert _referenced() <= made
 
 

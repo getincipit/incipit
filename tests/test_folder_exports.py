@@ -68,7 +68,10 @@ def test_a_document_the_admin_has_not_reviewed_holds_back_the_export(completed, 
 def test_the_prompt_follows_only_the_review_that_completed_the_folder(completed):
     settings, workflow, folder, document = completed
     with db.connect(settings.db_path) as conn:
-        assert folder_exports.completion(conn, workflow, document, False) == {"workflow": workflow, "folder_id": folder}
+        completed = folder_exports.completion(conn, workflow, document, False)
+        assert completed["workflow"] == workflow and completed["folder_id"] == folder
+        # Regression (hero recording, 2026-10-22): the export prompt showed the internal folder id.
+        assert completed["folder_display_id"] == folder_exports.folder_name(conn, workflow, folder)
 
 
 def test_a_folder_that_was_already_complete_does_not_prompt_again(completed):
