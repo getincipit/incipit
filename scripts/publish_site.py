@@ -9,6 +9,7 @@ builds that branch and force-pushes it. No workflow is involved, so it needs not
 
 from __future__ import annotations
 
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -29,12 +30,14 @@ def git(*args, cwd: Path) -> str:
     return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
 
 
-def stamp_assets(page: Path, version: str) -> None:
-    """Appends ?v=<commit> to the page's own stylesheet, script, video and poster links: GitHub's cache
-    keeps a file for ten minutes, and a new page drawn with an old stylesheet once broke the hero."""
+def stamp_assets(page: Path) -> None:
+    """Appends ?v=<hash of the file> to the page's own stylesheet, script, video and poster links:
+    GitHub's cache keeps a file for ten minutes, and a new page drawn with an old stylesheet once
+    broke the hero. The hash, not the commit, so a publish of unsaved work still gets new addresses."""
     html = page.read_text(encoding="utf-8")
     for name in ("site.css", "site.js", "hero.webm", "hero.mp4", "screens/hero-poster-dark.webp"):
-        html = html.replace(f'"{name}"', f'"{name}?v={version}"')
+        digest = hashlib.sha256((page.parent / name).read_bytes()).hexdigest()[:10]
+        html = html.replace(f'"{name}"', f'"{name}?v={digest}"')
     page.write_text(html, encoding="utf-8")
 
 
@@ -44,7 +47,7 @@ def publish() -> str:
         work = Path(tmp) / "pages"
         shutil.copytree(ROOT / "site", work)
         (work / ".nojekyll").write_text("", encoding="utf-8")
-        stamp_assets(work / "index.html", git("rev-parse", "--short", "HEAD", cwd=ROOT))
+        stamp_assets(work / "index.html")
         git("init", "-q", "-b", BRANCH, cwd=work)
         git("add", "-A", cwd=work)
         git("-c", "user.name=incipit", "-c", "user.email=incipit@users.noreply.github.com", "commit", "-q", "-m",

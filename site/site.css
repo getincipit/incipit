@@ -89,7 +89,16 @@ section { padding: 128px 24px; }
 .credit a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hairline-strong); }
 
 /* The hero is the program itself, recorded: a frame the width of the page, the video filling it. */
-.hero-screen { max-width: 1240px; margin: 56px auto 0; }
+.hero-screen { max-width: 1240px; margin: 56px auto 0; position: relative; }
+/* A way to stop the movement for anyone who wants it still, in the recording's corner. */
+.hero-pause { position: absolute; right: 18px; top: calc(62.5% - 60px); width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(11, 11, 12, 0.72); color: var(--paper); display: grid; place-items: center; cursor: pointer; padding: 0;
+  transition: background var(--fast) var(--ease), transform var(--fast) var(--ease); }
+.hero-pause:hover { background: rgba(11, 11, 12, 0.9); transform: scale(1.05); }
+.hero-pause:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hero-pause svg { width: 16px; height: 16px; fill: currentColor; }
+.hero-pause .icon-play, .hero-pause[aria-pressed="true"] .icon-pause { display: none; }
+.hero-pause[aria-pressed="true"] .icon-play { display: block; }
 .hero-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; border-radius: 18px; overflow: hidden;
   border: 1px solid var(--hairline-strong); background: var(--panel); box-shadow: var(--shadow), var(--glow); object-fit: cover; }
 .hero-caption { margin: 36px auto 0; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }

@@ -76,6 +76,13 @@ def main() -> int:
                     after = page.evaluate("document.querySelector('.hero-video').currentTime")
                     checks.ok("6 the hero's recording plays and the letter is credited",
                               after > before and page.eval_on_selector_all("[data-credits] a", "els => els.length") == 1)
+                    page.click("[data-hero-pause]")
+                    time.sleep(0.3)
+                    held = page.evaluate("document.querySelector('.hero-video').paused")
+                    page.click("[data-hero-pause]")
+                    time.sleep(0.5)
+                    checks.ok("6 the recording stops on its button and starts again",
+                              held and not page.evaluate("document.querySelector('.hero-video').paused"))
                 context.close()
         context = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
         page = context.new_page()

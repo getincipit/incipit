@@ -211,3 +211,24 @@ def test_ac9_the_publish_script_pushes_the_site_folder_to_the_pages_repository()
     script = (ROOT / "scripts" / "publish_site.py").read_text(encoding="utf-8")
     assert 'SITE_REPOSITORY = "getincipit/getincipit.github.io"' in script and 'PAGE_URL = "https://getincipit.github.io/"' in script
     assert 'shutil.copytree(ROOT / "site", work)' in script and ".nojekyll" in script
+
+
+def test_ac9_published_asset_links_are_versioned_by_their_content(tmp_path):
+    """Regression (review 2026-10-22): the version was the commit, so two publishes of unsaved work shared
+    addresses and a cached stylesheet could pair with a new page."""
+    import hashlib
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import publish_site
+    shutil.copytree(SITE, tmp_path / "site")
+    publish_site.stamp_assets(tmp_path / "site" / "index.html")
+    stamped = (tmp_path / "site" / "index.html").read_text(encoding="utf-8")
+    digest = hashlib.sha256((SITE / "site.css").read_bytes()).hexdigest()[:10]
+    assert f'"site.css?v={digest}"' in stamped and 'href="site.css"' not in stamped
+    assert "rev-parse" not in (ROOT / "scripts" / "publish_site.py").read_text(encoding="utf-8").split("def stamp_assets")[1].split("def publish")[0]
+
+
+def test_ac7_the_recording_can_be_paused_by_anyone():
+    hero = PAGE[PAGE.index('<section class="hero">'):PAGE.index("</section>")]
+    assert 'data-hero-pause' in hero and 'aria-pressed="false"' in hero and 'aria-label="Pause the recording"' in hero
+    assert "heroHeld" in SCRIPT and 'setAttribute("aria-label", paused ? "Play the recording" : "Pause the recording")' in SCRIPT

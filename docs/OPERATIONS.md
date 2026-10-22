@@ -8,7 +8,7 @@ runs entirely on your own machine.
 
 | What | Where |
 |---|---|
-| The program | `C:\Program Files\Incipit` (or `%LOCALAPPDATA%\Programs\Incipit`), chosen when it was installed |
+| The program | `C:\Program Files\Incipit` (or `%LOCALAPPDATA%\Programs\Incipit`), chosen when it was installed. It carries its own Python (`_internal\python312.dll`) and every library it needs; nothing else has to be installed, and a Python already on the computer is neither used nor needed. |
 | Your **data folder** | The folder you chose at install (often `Documents\Incipit Data`). Everything your project holds is here. |
 | ‣ the database | `incipit.db` in the data folder: people, folders, documents, reviews, comments, settings |
 | ‣ scans and records | `bucket\` in the data folder |

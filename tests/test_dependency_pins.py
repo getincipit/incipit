@@ -24,6 +24,15 @@ def declared() -> set[str]:
     return {normalised(item) for item in listed}
 
 
+def declared_requirements() -> list[str]:
+    with (REPO_ROOT / "pyproject.toml").open("rb") as handle:
+        project = tomllib.load(handle)["project"]
+    listed = list(project["dependencies"])
+    for extra in project.get("optional-dependencies", {}).values():
+        listed += list(extra)
+    return listed
+
+
 def pinned() -> dict[str, str]:
     pins = {}
     for line in (REPO_ROOT / "constraints.txt").read_text(encoding="utf-8").splitlines():
@@ -56,3 +65,18 @@ def test_the_install_everybody_uses_applies_the_pins():
     text = (REPO_ROOT / "requirements.txt").read_text(encoding="utf-8")
 
     assert "-c constraints.txt" in text
+
+
+def test_every_pin_satisfies_the_range_it_answers_to():
+    """Regression (review 2026-10-22): constraints.txt pinned Pillow 13 while pyproject.toml said <13, so
+    a clean install could not resolve; presence of a pin is not agreement with the range."""
+    from packaging.requirements import Requirement
+    from packaging.version import Version
+    pins = pinned()
+    broken = []
+    for item in declared_requirements():
+        requirement = Requirement(item)
+        version = pins.get(normalised(requirement.name))
+        if version and not requirement.specifier.contains(Version(version), prereleases=True):
+            broken.append(f"{requirement.name} pinned {version} outside {requirement.specifier}")
+    assert not broken, "; ".join(broken)

@@ -1359,3 +1359,14 @@ def test_a_replaced_link_takes_the_sites_current_name(tmp_path):
     new.announce(ADDRESS_TWO)
     created = [c for c in telegraph.calls if c[0] == "createPage"]
     assert created[-1][1]["title"] == "New Name"
+
+
+def test_the_build_carries_its_own_python_so_a_client_installs_nothing_else():
+    """User direction 2026-10-22: every install must run on the Python the program was built with. A
+    one-folder PyInstaller build ships the interpreter (python3xx.dll) beside the program; the guide says so."""
+    script = (SCRIPTS / "build_app.py").read_text(encoding="utf-8")
+    assert '"--onedir"' in script
+    assert "carries its own Python" in (ROOT / "docs" / "OPERATIONS.md").read_text(encoding="utf-8")
+    built = ROOT / "dist" / "Incipit" / "_internal"
+    if built.is_dir():
+        assert any(p.name.startswith("python3") and p.suffix == ".dll" for p in built.iterdir())

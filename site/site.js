@@ -36,15 +36,34 @@
 
   // The hero: the recorded review screen loops; with reduced motion the poster stands alone.
   const heroVideo = document.querySelector(".hero-video");
+  const heroPause = document.querySelector("[data-hero-pause]");
+  // Once someone has stopped it, nothing starts it again but their own press.
+  let heroHeld = false;
+  function showHeroState() {
+    if (!heroPause || !heroVideo) return;
+    const paused = heroVideo.paused;
+    heroPause.setAttribute("aria-pressed", String(paused));
+    heroPause.setAttribute("aria-label", paused ? "Play the recording" : "Pause the recording");
+  }
   if (heroVideo && still) {
     heroVideo.removeAttribute("autoplay");
     heroVideo.pause();
+    heroHeld = true;
   } else if (heroVideo && "IntersectionObserver" in window) {
     // Browsers pause a muted loop once it has scrolled away; it plays again when it comes back.
     new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (e.isIntersecting) heroVideo.play().catch(() => {});
-      else heroVideo.pause();
+      if (e.isIntersecting && !heroHeld) heroVideo.play().catch(() => {});
+      else if (!e.isIntersecting) heroVideo.pause();
     }), { threshold: 0.2 }).observe(heroVideo);
+  }
+  if (heroVideo && heroPause) {
+    heroPause.addEventListener("click", () => {
+      heroHeld = !heroVideo.paused;
+      if (heroVideo.paused) heroVideo.play().catch(() => {}); else heroVideo.pause();
+    });
+    heroVideo.addEventListener("play", showHeroState);
+    heroVideo.addEventListener("pause", showHeroState);
+    showHeroState();
   }
 
   // The documents' credits, from the file the fetch script writes.
